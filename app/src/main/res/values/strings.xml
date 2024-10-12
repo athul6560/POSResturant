@@ -12,4 +12,9 @@
     <string name="menu_slideshow">Slideshow</string>
     <string name="welcome">Welcome</string>
     <string name="take_order_with_ease">Take Order with ease.</string>
+    <string name="search_product">Search product...</string>
+    <string name="current_order">Current Order</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="total_sale_tax">Total Sale Tax</string>
+    <string name="total">Total</string>
 </resources>
