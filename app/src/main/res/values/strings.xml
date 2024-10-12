@@ -17,4 +17,8 @@
     <string name="subtotal">Subtotal</string>
     <string name="total_sale_tax">Total Sale Tax</string>
     <string name="total">Total</string>
+    <string name="about">About</string>
+    <string name="addnewtem">Add New Item</string>
+    <string name="add_new_item">Add New Item</string>
+    <string name="categorised">Categorised</string>
 </resources>
