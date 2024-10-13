@@ -60,7 +60,7 @@ dependencies {
     implementation ("androidx.room:room-ktx:$room_version")
 
 
-
+    implementation ("com.google.code.gson:gson:2.11.0")
 
 
     implementation (libs.kotlinx.coroutines.core)

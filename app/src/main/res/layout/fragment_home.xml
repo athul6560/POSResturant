@@ -70,6 +70,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <RelativeLayout
+            android:id="@+id/relativeLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
@@ -87,6 +88,7 @@
         </RelativeLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="20dp"
@@ -154,10 +156,11 @@
             <com.zeezaglobal.posresturant.ui.designElememnts.DottedLines
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:layout_marginRight="20dp"
                 android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
                 app:layout_constraintBottom_toTopOf="@+id/textView11"
                 app:layout_constraintTop_toBottomOf="@+id/textView7" />
+
             <TextView
                 android:id="@+id/textView9"
                 android:layout_width="wrap_content"
@@ -169,20 +172,29 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
 
-
             <TextView
                 android:id="@+id/textView10"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginEnd="32dp"
-                android:text="₹132.5"
                 android:fontFamily="@font/roboto_medium"
-                android:textSize="20sp"
+                android:text="₹132.5"
                 android:textColor="@color/black"
+                android:textSize="20sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView9" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="20dp"
+            android:id="@+id/cart_recycler_view"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/relativeLayout" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
