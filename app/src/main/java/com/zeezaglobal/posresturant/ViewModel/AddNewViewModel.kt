@@ -10,7 +10,7 @@ import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import kotlinx.coroutines.launch
 
-class POSViewModel(
+class AddNewViewModel(
     private val groupRepository: GroupRepository,
     private val itemRepository: ItemRepository
 ) : ViewModel() {

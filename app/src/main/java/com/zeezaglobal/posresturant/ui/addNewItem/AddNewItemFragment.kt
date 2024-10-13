@@ -20,10 +20,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.zeezaglobal.posresturant.Adapters.ItemAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
-import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
-import com.zeezaglobal.posresturant.ViewModel.POSViewModel
+import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentAddNewBinding
 
@@ -31,7 +30,7 @@ import com.zeezaglobal.posresturant.databinding.FragmentAddNewBinding
 class AddNewItemFragment : Fragment() {
 
     private var _binding: FragmentAddNewBinding? = null
-    private lateinit var posViewModel: POSViewModel
+    private lateinit var addNewViewModel: AddNewViewModel
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
@@ -53,8 +52,8 @@ class AddNewItemFragment : Fragment() {
         val itemRepository = ItemRepository((application).database.itemDao())
 
         val posViewModelFactory = POSViewModelFactory(groupRepository,itemRepository)
-        posViewModel = ViewModelProvider(this, posViewModelFactory).get(
-            POSViewModel::class.java
+        addNewViewModel = ViewModelProvider(this, posViewModelFactory).get(
+            AddNewViewModel::class.java
         )
         _binding = FragmentAddNewBinding.inflate(inflater, container, false)
         // Initialize EditTexts
@@ -78,13 +77,13 @@ class AddNewItemFragment : Fragment() {
         val root: View = binding.root
         val categorySpinner: Spinner = binding.categorySpinner
         // Observe groups from the ViewModel
-        posViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
+        addNewViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
             val groupNames = groupList.map { it.groupName } // Assuming Group has a property named groupName
             val adapter = ArrayAdapter(requireContext(), R.layout.simple_spinner_item, groupNames)
             adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item)
             categorySpinner.adapter = adapter
         })
-        posViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
+        addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
            itemAdapter.updateItems(itemList)
         })
 
@@ -122,7 +121,7 @@ class AddNewItemFragment : Fragment() {
             }
 
             // Add the item to the group
-            posViewModel.addItemToGroup(selectedGroupId!!, itemName, itemDescription, itemPrice)
+            addNewViewModel.addItemToGroup(selectedGroupId!!, itemName, itemDescription, itemPrice)
 
             // Show a success message
            // Toast.makeText(requireContext(), "Item '$itemName' added successfully", Toast.LENGTH_SHORT).show()
@@ -157,7 +156,7 @@ class AddNewItemFragment : Fragment() {
 
             if (categoryName.isNotEmpty()) {
                 // Insert the category (you can call a ViewModel method to insert it into the database)
-                posViewModel.addGroup(categoryName)
+                addNewViewModel.addGroup(categoryName)
                 alertDialog.dismiss()
             } else {
                 Toast.makeText(requireContext(), "Please enter a category name", Toast.LENGTH_SHORT).show()

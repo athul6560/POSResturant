@@ -26,7 +26,7 @@ class ItemAdapter (private var itemList: List<Item>) : RecyclerView.Adapter<Item
         val item = itemList[position]
         holder.itemName.text = item.itemName
         holder.itemDescription.text = item.itemDescription
-        holder.itemPrice.text = "$${item.itemPrice}" // Format price as needed
+        holder.itemPrice.text = "₹${item.itemPrice}" // Format price as needed
     }
 
     override fun getItemCount(): Int {
