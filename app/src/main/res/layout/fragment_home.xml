@@ -70,7 +70,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <RelativeLayout
-            android:id="@+id/relativeLayout"
+            android:id="@+id/clear_cart_relative_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
@@ -81,10 +81,11 @@
 
             <ImageView
                 android:layout_width="wrap_content"
+
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_margin="9dp"
-                android:src="@drawable/baseline_settings_24" />
+                android:src="@drawable/baseline_delete_forever_24" />
         </RelativeLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -149,7 +150,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="32dp"
-                android:text="₹120"
+                android:text="₹0"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -167,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="32dp"
-                android:text="₹12.5"
+                android:text="₹0"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
@@ -179,7 +180,7 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginEnd="32dp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="₹132.5"
+                android:text="₹0.0"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -194,7 +195,7 @@
             app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/relativeLayout" />
+            app:layout_constraintTop_toBottomOf="@+id/clear_cart_relative_layout" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -18,7 +18,7 @@ class CartAdapter (private var itemList: List<Item>) : RecyclerView.Adapter<Cart
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_list_row, parent, false)
+            .inflate(R.layout.cart_layout, parent, false)
         return ItemViewHolder(view)
     }
 

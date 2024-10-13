@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -35,6 +37,10 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var cartRecyclerView: RecyclerView
     private lateinit var cartAdapter: CartAdapter
+    private lateinit var subtotalTextView: TextView
+    private lateinit var taxTextView: TextView
+    private lateinit var totalTextView: TextView
+    private lateinit var clearCart: RelativeLayout
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,9 +56,13 @@ class HomeFragment : Fragment() {
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
+        // Find TextViews for subtotal, tax, and total
+        subtotalTextView = binding.textView8
+        taxTextView = binding.textView9
+        totalTextView = binding.textView10
         itemRecyclerView = binding.homeRecyclerView
         cartRecyclerView = binding.cartRecyclerView
+        clearCart = binding.clearCartRelativeLayout
 
         cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         cartAdapter = CartAdapter(emptyList())
@@ -68,7 +78,32 @@ class HomeFragment : Fragment() {
         addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
             adapter.updateItems(itemList)
         })
+        // Set onClickListener for clear cart button
+        clearCart.setOnClickListener {
+            clearCartFn()
+        }
+
         return root
+    }
+
+    private fun clearCartFn() {
+        val sharedPref = requireActivity().getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+
+        // Remove the "itemList" from SharedPreferences
+        editor.remove("itemList")
+        editor.apply()
+
+        // Clear the cart items in the UI
+        cartAdapter.updateItems(emptyList())
+
+        // Reset subtotal, tax, and total TextViews
+        subtotalTextView.text = "₹0.00"
+        taxTextView.text = "₹0.00"
+        totalTextView.text = "₹0.00"
+
+        // Show a toast message to confirm
+        Toast.makeText(requireContext(), "Cart cleared", Toast.LENGTH_SHORT).show()
     }
 
     private fun saveToSharedPreferences(item: Item) {
@@ -118,9 +153,24 @@ class HomeFragment : Fragment() {
 
             // Update the CartAdapter with the retrieved items
             cartAdapter.updateItems(itemList)
+            calculateTotals(itemList)
         }
     }
+    private fun calculateTotals(itemList: List<Item>) {
+        // Calculate subtotal
+        val subtotal = itemList.sumOf { it.itemPrice }
 
+        // Calculate tax (18% of subtotal)
+        val tax = subtotal * 0.18
+
+        // Calculate total (subtotal + tax)
+        val total = subtotal + tax
+
+        // Update the TextViews
+        subtotalTextView.text = String.format("₹%.2f", subtotal)
+        taxTextView.text = String.format("₹%.2f", tax)
+        totalTextView.text = String.format("₹%.2f", total)
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         clearSharedPreferences()

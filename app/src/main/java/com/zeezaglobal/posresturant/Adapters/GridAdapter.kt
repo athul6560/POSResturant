@@ -23,7 +23,7 @@ class GridAdapter(
         val item = items[position]
         holder.textViewItemName.text = item.itemName
         holder.textViewItemDescription.text = item.itemDescription
-        holder.textViewItemPrice.text = String.format("$%.2f", item.itemPrice)
+        holder.textViewItemPrice.text = String.format("₹%.2f", item.itemPrice)
 
         // Set click listener
         holder.itemView.setOnClickListener {
