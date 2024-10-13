@@ -1,10 +1,10 @@
-package com.zeezaglobal.posresturant.ui.gallery
+package com.zeezaglobal.posresturant.ui.addNewItem
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class GalleryViewModel : ViewModel() {
+class AddNewItemViewModel : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is gallery Fragment"

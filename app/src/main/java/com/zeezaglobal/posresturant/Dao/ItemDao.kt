@@ -16,4 +16,7 @@ interface ItemDao {
 
     @Query("DELETE FROM item_table WHERE itemId = :itemId")
     suspend fun deleteItem(itemId: Int)
+
+    @Query("SELECT * FROM item_table") // New method to get all items
+    suspend fun getAllItems(): List<Item>
 }

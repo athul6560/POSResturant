@@ -1,5 +1,7 @@
 package com.zeezaglobal.posresturant.ViewModel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zeezaglobal.posresturant.Entities.Group
@@ -12,20 +14,38 @@ class POSViewModel(
     private val groupRepository: GroupRepository,
     private val itemRepository: ItemRepository
 ) : ViewModel() {
+    private val _groups = MutableLiveData<List<Group>>()
+    private val _items = MutableLiveData<List<Item>>()
+    val groups: LiveData<List<Group>> get() = _groups
+    val items: LiveData<List<Item>> get() = _items
 
+    init {
+        loadGroups()
+        loadItems()
+    }
     // Insert a group
     fun addGroup(groupName: String) {
         val group = Group(groupName = groupName)
         viewModelScope.launch {
             groupRepository.insertGroup(group)
+            loadGroups()
         }
     }
-
+    fun loadItems() {
+        viewModelScope.launch {
+            viewModelScope.launch {
+                val itemList = itemRepository.getAllItem()
+                _items.value = itemList
+            }
+        }
+    }
     // Get all groups
     fun loadGroups() {
         viewModelScope.launch {
-            val groups = groupRepository.getAllGroups()
-            // Do something with the groups (e.g., update UI)
+            viewModelScope.launch {
+                val groupList = groupRepository.getAllGroups()
+                _groups.value = groupList
+            }
         }
     }
 
@@ -34,6 +54,7 @@ class POSViewModel(
         val item = Item(groupId = groupId, itemName = itemName, itemDescription = itemDescription, itemPrice = itemPrice)
         viewModelScope.launch {
             itemRepository.insertItem(item)
+            loadItems()
         }
     }
 

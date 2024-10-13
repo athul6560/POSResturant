@@ -6,17 +6,13 @@ import com.zeezaglobal.posresturant.Database.POSDatabase
 
 class POSApp : Application() {
 
-    companion object {
-        lateinit var database: POSDatabase
-            private set
-    }
+    lateinit var database: POSDatabase
 
     override fun onCreate() {
         super.onCreate()
         database = Room.databaseBuilder(
             applicationContext,
             POSDatabase::class.java,
-            "pos_database"
+            "my-database"
         ).build()
-    }
-}
+}}
