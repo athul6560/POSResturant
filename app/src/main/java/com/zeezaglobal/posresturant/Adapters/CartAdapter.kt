@@ -3,17 +3,25 @@ package com.zeezaglobal.posresturant.Adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.zeezaglobal.posresturant.Entities.CartItem
 import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.R
 
-class CartAdapter (private var itemList: List<Item>) : RecyclerView.Adapter<CartAdapter.ItemViewHolder>() {
+class CartAdapter (
+    private var itemList: MutableList<CartItem>,
+    private val onQuantityChanged: (List<CartItem>) -> Unit)
+    : RecyclerView.Adapter<CartAdapter.ItemViewHolder>() {
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val itemName: TextView = itemView.findViewById(R.id.item_name_text_view)
         val itemDescription: TextView = itemView.findViewById(R.id.item_description_text_view)
         val itemPrice: TextView = itemView.findViewById(R.id.item_price_text_view)
+        val itemQuantity: TextView = itemView.findViewById(R.id.item_quantity)
+        val addItemButton: RelativeLayout = itemView.findViewById(R.id.add_item_relative_layout)
+        val subtractItemButton: RelativeLayout = itemView.findViewById(R.id.subtract_item_relative_layout)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -24,16 +32,44 @@ class CartAdapter (private var itemList: List<Item>) : RecyclerView.Adapter<Cart
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = itemList[position]
-        holder.itemName.text = item.itemName
-        holder.itemDescription.text = item.itemDescription
-        holder.itemPrice.text = "₹${item.itemPrice}" // Format price as needed
-    }
+        holder.itemName.text = item.item.itemName
+        holder.itemDescription.text = item.item.itemDescription
+        holder.itemPrice.text = "₹${item.item.itemPrice}" // Format price as needed
+        holder.itemQuantity.text = item.quantity.toString()
+        // Set click listener for add button
+        holder.addItemButton.setOnClickListener {
+            item.quantity++ // Increase quantity
+            notifyItemChanged(position) // Notify the adapter that item has changed
+            onQuantityChanged(itemList) // Notify about quantity change
+        }
 
+        // Set click listener for subtract button
+        holder.subtractItemButton.setOnClickListener {
+            if (item.quantity > 0) {
+                item.quantity-- // Decrease quantity
+                if (item.quantity == 0) {
+                    removeItem(position) // Remove item if quantity is zero
+                } else {
+                    notifyItemChanged(position) // Notify the adapter that item has changed
+                }
+                onQuantityChanged(itemList) // Notify about quantity change
+            }
+        }
+    }
     override fun getItemCount(): Int {
         return itemList.size
     }
 
-    fun updateItems(newItems: List<Item>) {
-        itemList = newItems
-        notifyDataSetChanged() // Notify the adapter of data changes
-    }}
+    // Function to remove an item
+    private fun removeItem(position: Int) {
+        itemList.removeAt(position) // Remove item from the list
+        notifyItemRemoved(position) // Notify that the item was removed
+        notifyItemRangeChanged(position, itemList.size) // Notify about the item range change
+    }
+
+    fun updateItems(newItems: List<CartItem>) {
+        itemList.clear() // Clear the existing items
+        itemList.addAll(newItems) // Add new items
+        notifyDataSetChanged()
+    }
+}

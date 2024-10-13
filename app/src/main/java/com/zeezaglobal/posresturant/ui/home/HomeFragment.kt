@@ -21,6 +21,7 @@ import com.zeezaglobal.posresturant.Adapters.CartAdapter
 import com.zeezaglobal.posresturant.Adapters.GridAdapter
 import com.zeezaglobal.posresturant.Adapters.ItemAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
+import com.zeezaglobal.posresturant.Entities.CartItem
 import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
@@ -65,7 +66,11 @@ class HomeFragment : Fragment() {
         clearCart = binding.clearCartRelativeLayout
 
         cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        cartAdapter = CartAdapter(emptyList())
+        cartAdapter = CartAdapter(mutableListOf()) { updatedItemList ->
+            // Update the cart in your fragment or activity here
+            // For example, recalculate totals based on the updated list
+            calculateTotals(updatedItemList)
+        }
         cartRecyclerView.adapter = cartAdapter
         // Set up adapter with a click listener to save the clicked item to SharedPreferences
         adapter = GridAdapter(emptyList()) { selectedItem ->
@@ -90,8 +95,8 @@ class HomeFragment : Fragment() {
         val sharedPref = requireActivity().getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
         val editor = sharedPref.edit()
 
-        // Remove the "itemList" from SharedPreferences
-        editor.remove("itemList")
+        // Remove the "cartItemList" from SharedPreferences (since we are now storing CartItem instead of Item)
+        editor.remove("cartItemList")
         editor.apply()
 
         // Clear the cart items in the UI
@@ -102,7 +107,7 @@ class HomeFragment : Fragment() {
         taxTextView.text = "₹0.00"
         totalTextView.text = "₹0.00"
 
-        // Show a toast message to confirm
+        // Show a toast message to confirm the cart is cleared
         Toast.makeText(requireContext(), "Cart cleared", Toast.LENGTH_SHORT).show()
     }
 
@@ -111,54 +116,58 @@ class HomeFragment : Fragment() {
         val editor = sharedPref.edit()
 
         // Retrieve the existing list from SharedPreferences (as JSON)
-        val existingItemsJson = sharedPref.getString("itemList", null)
+        val existingItemsJson = sharedPref.getString("cartItemList", null)
 
-        // Convert JSON back to a List<Item> or initialize a new list
-        val itemListType = object : TypeToken<MutableList<Item>>() {}.type
-        val itemList: MutableList<Item> = if (existingItemsJson != null) {
-            Gson().fromJson(existingItemsJson, itemListType)
+        // Convert JSON back to a List<CartItem> or initialize a new list
+        val cartItemType = object : TypeToken<MutableList<CartItem>>() {}.type
+        val cartItemList: MutableList<CartItem> = if (existingItemsJson != null) {
+            Gson().fromJson(existingItemsJson, cartItemType)
         } else {
             mutableListOf()
         }
 
-        // Add the new item to the list if it doesn't already exist
-        if (!itemList.any { it.itemId == item.itemId }) {
-            itemList.add(item)
-            // Convert the updated list back to JSON
-            val updatedItemsJson = Gson().toJson(itemList)
-
-            // Store the updated list in SharedPreferences
-            editor.putString("itemList", updatedItemsJson)
-            editor.apply()
-
-            // Show a toast as feedback
-            Toast.makeText(requireContext(), "${item.itemName} added to preferences", Toast.LENGTH_SHORT).show()
-
+        // Check if the item is already in the cart
+        val existingCartItem = cartItemList.find { it.item.itemId == item.itemId }
+        if (existingCartItem != null) {
+            // If the item is already in the cart, update the quantity
+            existingCartItem.quantity += 1
         } else {
-            // Show a toast if the item is already in the list
-            Toast.makeText(requireContext(), "${item.itemName} is already in the list", Toast.LENGTH_SHORT).show()
+            // If the item is not in the cart, add a new CartItem with quantity 1
+            cartItemList.add(CartItem(item = item, quantity = 1))
         }
+
+        // Convert the updated list back to JSON
+        val updatedCartItemsJson = Gson().toJson(cartItemList)
+
+        // Store the updated list in SharedPreferences
+        editor.putString("cartItemList", updatedCartItemsJson)
+        editor.apply()
+
+        // Show a toast as feedback
+      //  Toast.makeText(requireContext(), "${item.itemName} added to preferences", Toast.LENGTH_SHORT).show()
+
+        // Load the cart again to update the UI
         loadCartFromSharedPreferences()
 
     }
 
     private fun loadCartFromSharedPreferences() {
         val sharedPref = requireActivity().getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
-        val itemsJson = sharedPref.getString("itemList", null)
+        val itemsJson = sharedPref.getString("cartItemList", null)
 
         if (itemsJson != null) {
-            // Convert JSON to a List<Item>
-            val itemType = object : TypeToken<List<Item>>() {}.type
-            val itemList: List<Item> = Gson().fromJson(itemsJson, itemType)
+            // Change List<CartItem> to MutableList<CartItem>
+            val cartItemType = object : TypeToken<MutableList<CartItem>>() {}.type
+            val cartItemList: MutableList<CartItem> = Gson().fromJson(itemsJson, cartItemType)
 
             // Update the CartAdapter with the retrieved items
-            cartAdapter.updateItems(itemList)
-            calculateTotals(itemList)
+            cartAdapter.updateItems(cartItemList)  // Update the adapter with only items
+            calculateTotals(cartItemList)
         }
-    }
-    private fun calculateTotals(itemList: List<Item>) {
-        // Calculate subtotal
-        val subtotal = itemList.sumOf { it.itemPrice }
+        }
+
+    private fun calculateTotals(cartItemList: List<CartItem>) {
+        val subtotal = cartItemList.sumOf { it.item.itemPrice * it.quantity } // Multiply price by quantity
 
         // Calculate tax (18% of subtotal)
         val tax = subtotal * 0.18
