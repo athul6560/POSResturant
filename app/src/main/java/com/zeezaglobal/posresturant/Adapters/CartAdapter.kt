@@ -9,11 +9,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.zeezaglobal.posresturant.Entities.CartItem
 import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.R
+import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
 
-class CartAdapter (
+class CartAdapter(
     private var itemList: MutableList<CartItem>,
-    private val onQuantityChanged: (List<CartItem>) -> Unit)
-    : RecyclerView.Adapter<CartAdapter.ItemViewHolder>() {
+    private val sharedPreferencesHelper: SharedPreferencesHelper,
+    private val onQuantityChanged: (List<CartItem>) -> Unit
+) : RecyclerView.Adapter<CartAdapter.ItemViewHolder>() {
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val itemName: TextView = itemView.findViewById(R.id.item_name_text_view)
@@ -32,13 +34,23 @@ class CartAdapter (
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         val item = itemList[position]
-        holder.itemName.text = item.item.itemName
-        holder.itemDescription.text = item.item.itemDescription
+        // Capitalize the first letter of item name and description
+        val capitalizedItemName = item.item.itemName.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+        val capitalizedItemDescription = item.item.itemDescription.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+
+        holder.itemName.text = capitalizedItemName
+        holder.itemDescription.text = capitalizedItemDescription
         holder.itemPrice.text = "₹${item.item.itemPrice}" // Format price as needed
         holder.itemQuantity.text = item.quantity.toString()
+
         // Set click listener for add button
         holder.addItemButton.setOnClickListener {
             item.quantity++ // Increase quantity
+            sharedPreferencesHelper.saveCartItemToSharedPreferences(item.item) // Update SharedPreferences
             notifyItemChanged(position) // Notify the adapter that item has changed
             onQuantityChanged(itemList) // Notify about quantity change
         }
@@ -52,10 +64,12 @@ class CartAdapter (
                 } else {
                     notifyItemChanged(position) // Notify the adapter that item has changed
                 }
+                sharedPreferencesHelper.saveCartItemToSharedPreferences(item.item) // Update SharedPreferences
                 onQuantityChanged(itemList) // Notify about quantity change
             }
         }
     }
+
     override fun getItemCount(): Int {
         return itemList.size
     }
@@ -65,6 +79,8 @@ class CartAdapter (
         itemList.removeAt(position) // Remove item from the list
         notifyItemRemoved(position) // Notify that the item was removed
         notifyItemRangeChanged(position, itemList.size) // Notify about the item range change
+        // Also remove from SharedPreferences if item is removed
+        sharedPreferencesHelper.clearCart()
     }
 
     fun updateItems(newItems: List<CartItem>) {

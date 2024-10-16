@@ -21,8 +21,17 @@ class GridAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.textViewItemName.text = item.itemName
-        holder.textViewItemDescription.text = item.itemDescription
+
+        // Capitalize the first letter of item name and description
+        val capitalizedItemName = item.itemName.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+        val capitalizedItemDescription = item.itemDescription.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+
+        holder.textViewItemName.text = capitalizedItemName
+        holder.textViewItemDescription.text = capitalizedItemDescription
         holder.textViewItemPrice.text = String.format("₹%.2f", item.itemPrice)
 
         // Set click listener
