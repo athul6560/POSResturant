@@ -1,10 +1,12 @@
 package com.zeezaglobal.posresturant.ui.home
 
+import android.R
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
@@ -19,6 +21,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.zeezaglobal.posresturant.Adapters.CartAdapter
 import com.zeezaglobal.posresturant.Adapters.GridAdapter
+import com.zeezaglobal.posresturant.Adapters.HorizondalAdapter
 import com.zeezaglobal.posresturant.Adapters.ItemAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
 import com.zeezaglobal.posresturant.Entities.CartItem
@@ -43,6 +46,8 @@ class HomeFragment : Fragment() {
     private lateinit var totalTextView: TextView
     private lateinit var clearCart: RelativeLayout
     private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
+    private lateinit var horizondalrecyclerView: RecyclerView
+    private lateinit var horizondaladapter: HorizondalAdapter
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -66,7 +71,21 @@ class HomeFragment : Fragment() {
         cartRecyclerView = binding.cartRecyclerView
         clearCart = binding.clearCartRelativeLayout
         sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
+        horizondalrecyclerView = binding.groupRv
+        horizondalrecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        // Initialize adapter with touch handler (onItemClick lambda)
+        horizondaladapter = HorizondalAdapter(emptyList()) { clickedItem ->
+            Toast.makeText(requireContext(), "Clicked", Toast.LENGTH_SHORT).show()
+        }
+        // Initialize item list
+        addNewViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
+            var groupNames = groupList.map { it.groupName } // Assuming Group has a property named groupName
+            horizondaladapter.updateItems(groupNames)
+        })
 
+
+
+        horizondalrecyclerView.adapter = horizondaladapter
         cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         cartAdapter = CartAdapter(mutableListOf(), sharedPreferencesHelper) { updatedItemList ->
             calculateTotals(updatedItemList)
@@ -83,6 +102,7 @@ class HomeFragment : Fragment() {
         addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
             adapter.updateItems(itemList)
         })
+
         // Set onClickListener for clear cart button
         clearCart.setOnClickListener {
             clearCartFn()
