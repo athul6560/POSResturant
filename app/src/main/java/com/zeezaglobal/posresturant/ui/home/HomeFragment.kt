@@ -2,11 +2,13 @@ package com.zeezaglobal.posresturant.ui.home
 
 import android.R
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
@@ -32,6 +34,7 @@ import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
 import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentHomeBinding
+import com.zeezaglobal.posresturant.ui.printModule.PrintActivity
 
 class HomeFragment : Fragment() {
     private lateinit var addNewViewModel: AddNewViewModel
@@ -48,6 +51,7 @@ class HomeFragment : Fragment() {
     private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
     private lateinit var horizondalrecyclerView: RecyclerView
     private lateinit var horizondaladapter: HorizondalAdapter
+    private lateinit var CheckoutButton: Button
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -70,6 +74,7 @@ class HomeFragment : Fragment() {
         itemRecyclerView = binding.homeRecyclerView
         cartRecyclerView = binding.cartRecyclerView
         clearCart = binding.clearCartRelativeLayout
+        CheckoutButton = binding.checkoutButton
         sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
         horizondalrecyclerView = binding.groupRv
         horizondalrecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -83,7 +88,10 @@ class HomeFragment : Fragment() {
             horizondaladapter.updateItems(groupNames)
         })
 
-
+        CheckoutButton.setOnClickListener{
+            val intent = Intent(requireContext(), PrintActivity::class.java)
+            startActivity(intent)
+        }
 
         horizondalrecyclerView.adapter = horizondaladapter
         cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
