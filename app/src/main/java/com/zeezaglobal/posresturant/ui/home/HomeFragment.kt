@@ -1,15 +1,10 @@
 package com.zeezaglobal.posresturant.ui.home
 
-import android.R
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -19,22 +14,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.zeezaglobal.posresturant.Adapters.CartAdapter
 import com.zeezaglobal.posresturant.Adapters.GridAdapter
 import com.zeezaglobal.posresturant.Adapters.HorizondalAdapter
-import com.zeezaglobal.posresturant.Adapters.ItemAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
 import com.zeezaglobal.posresturant.Entities.CartItem
-import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
 import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentHomeBinding
-import com.zeezaglobal.posresturant.ui.printModule.PrintActivity
 
 class HomeFragment : Fragment() {
     private lateinit var addNewViewModel: AddNewViewModel
@@ -52,6 +42,8 @@ class HomeFragment : Fragment() {
     private lateinit var horizondalrecyclerView: RecyclerView
     private lateinit var horizondaladapter: HorizondalAdapter
     private lateinit var CheckoutButton: Button
+    private val listOfCartItems: MutableList<CartItem> = mutableListOf()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -79,6 +71,8 @@ class HomeFragment : Fragment() {
         horizondalrecyclerView = binding.groupRv
         horizondalrecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         // Initialize adapter with touch handler (onItemClick lambda)
+
+
         horizondaladapter = HorizondalAdapter(emptyList()) { clickedItem ->
             Toast.makeText(requireContext(), "Clicked", Toast.LENGTH_SHORT).show()
         }
@@ -89,20 +83,34 @@ class HomeFragment : Fragment() {
         })
 
         CheckoutButton.setOnClickListener{
-            val intent = Intent(requireContext(), PrintActivity::class.java)
-            startActivity(intent)
+
         }
 
         horizondalrecyclerView.adapter = horizondaladapter
         cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        cartAdapter = CartAdapter(mutableListOf(), sharedPreferencesHelper) { updatedItemList ->
-            calculateTotals(updatedItemList)
-        }
+        cartAdapter = CartAdapter(
+            listOfCartItems,
+            onQuantityChanged = { updateCart(it) },
+            onItemAdded = { addItemToCart(it) },
+            onItemSubtracted = { subtractItemFromCart(it) }
+        )
         cartRecyclerView.adapter = cartAdapter
         // Set up adapter with a click listener to save the clicked item to SharedPreferences
         adapter = GridAdapter(emptyList()) { selectedItem ->
-            sharedPreferencesHelper.saveCartItemToSharedPreferences(selectedItem)
-            loadCartFromSharedPreferences()
+            // Check if the item already exists in the cart
+            val existingCartItem = listOfCartItems.find { it.item == selectedItem }
+
+            if (existingCartItem != null) {
+                // Item already exists in the cart, update its quantity
+                existingCartItem.quantity += 1
+            } else {
+                // Item is not in the cart, add a new CartItem with quantity 1
+                listOfCartItems.add(CartItem(selectedItem, 1))
+            }
+
+            updateCart(listOfCartItems)
+           // sharedPreferencesHelper.saveCartItemToSharedPreferences(selectedItem)
+         //   loadCartFromSharedPreferences()
         }
         itemRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2) // 2 columns
         itemRecyclerView.adapter = adapter
@@ -119,7 +127,45 @@ class HomeFragment : Fragment() {
         return root
     }
 
+    private fun subtractItemFromCart(cartItem: CartItem) {
+        // Find the item in listOfCartItems and decrease quantity or remove
+        val existingItem = listOfCartItems.find { it.item == cartItem.item }
+        if (existingItem != null) {
+            if (existingItem.quantity > 1) {
+                existingItem.quantity-- // Decrease quantity if more than 1
+            } else {
+                listOfCartItems.remove(existingItem) // Remove item if quantity is 1
+            }
+
+            // Refresh the adapter to reflect changes
+            adapter.notifyDataSetChanged()
+            updateCart(listOfCartItems) // Update cart UI
+        }
+    }
+
+    private fun addItemToCart(cartItem: CartItem) {
+        // Update the quantity in listOfCartItems
+        val existingItem = listOfCartItems.find { it.item == cartItem.item }
+        if (existingItem != null) {
+            existingItem.quantity++ // Increase quantity if item exists
+        } else {
+            listOfCartItems.add(cartItem.apply { quantity = 1 }) // Add new item with quantity 1
+        }
+
+
+        // Refresh the adapter to reflect changes
+        adapter.notifyDataSetChanged()
+        updateCart(listOfCartItems) // Update cart UI
+    }
+
+    private fun updateCart(listOfCartItems: List<CartItem>) {
+        cartAdapter.updateItems(listOfCartItems)
+        calculateTotals(listOfCartItems)
+
+    }
+
     private fun clearCartFn() {
+        listOfCartItems.clear()
         sharedPreferencesHelper.clearCart()
         cartAdapter.updateItems(emptyList())
         subtotalTextView.text = "₹0.00"
