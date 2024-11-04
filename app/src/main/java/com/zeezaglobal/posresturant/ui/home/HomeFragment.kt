@@ -1,10 +1,14 @@
 package com.zeezaglobal.posresturant.ui.home
 
+import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -19,12 +23,14 @@ import com.zeezaglobal.posresturant.Adapters.GridAdapter
 import com.zeezaglobal.posresturant.Adapters.HorizondalAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
 import com.zeezaglobal.posresturant.Entities.CartItem
+import com.zeezaglobal.posresturant.Repository.CartItemStore
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
 import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentHomeBinding
+import com.zeezaglobal.posresturant.ui.printModule.PrintActivity
 
 class HomeFragment : Fragment() {
     private lateinit var addNewViewModel: AddNewViewModel
@@ -42,6 +48,8 @@ class HomeFragment : Fragment() {
     private lateinit var horizondalrecyclerView: RecyclerView
     private lateinit var horizondaladapter: HorizondalAdapter
     private lateinit var CheckoutButton: Button
+    private lateinit var searchProduct: EditText
+
     private val listOfCartItems: MutableList<CartItem> = mutableListOf()
 
     override fun onCreateView(
@@ -67,6 +75,7 @@ class HomeFragment : Fragment() {
         cartRecyclerView = binding.cartRecyclerView
         clearCart = binding.clearCartRelativeLayout
         CheckoutButton = binding.checkoutButton
+        searchProduct = binding.searchProduct
         sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
         horizondalrecyclerView = binding.groupRv
         horizondalrecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -83,7 +92,8 @@ class HomeFragment : Fragment() {
         })
 
         CheckoutButton.setOnClickListener{
-
+            CartItemStore.cartItemList = listOfCartItems
+startActivity(Intent(requireContext(),PrintActivity::class.java))
         }
 
         horizondalrecyclerView.adapter = horizondaladapter
@@ -118,7 +128,17 @@ class HomeFragment : Fragment() {
         addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
             adapter.updateItems(itemList)
         })
+// Implement search functionality
+        searchProduct.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                // Call filter method on adapter whenever search query changes
+                adapter.filterItems(s.toString())
+            }
 
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
         // Set onClickListener for clear cart button
         clearCart.setOnClickListener {
             clearCartFn()
@@ -176,11 +196,7 @@ class HomeFragment : Fragment() {
 
 
 
-    private fun loadCartFromSharedPreferences() {
-        val cartItemList = sharedPreferencesHelper.loadCartFromSharedPreferences()
-        cartAdapter.updateItems(cartItemList)
-        calculateTotals(cartItemList)
-        }
+
 
     private fun calculateTotals(cartItemList: List<CartItem>) {
         val subtotal = cartItemList.sumOf { it.item.itemPrice * it.quantity }

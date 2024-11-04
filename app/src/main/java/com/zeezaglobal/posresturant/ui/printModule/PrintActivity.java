@@ -32,15 +32,18 @@ import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections;
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 
 
+import com.zeezaglobal.posresturant.Entities.CartItem;
 import com.zeezaglobal.posresturant.Printer.async.AsyncBluetoothEscPosPrint;
 import com.zeezaglobal.posresturant.Printer.async.AsyncEscPosPrint;
 import com.zeezaglobal.posresturant.Printer.async.AsyncEscPosPrinter;
 import com.zeezaglobal.posresturant.Printer.async.AsyncTcpEscPosPrint;
 import com.zeezaglobal.posresturant.Printer.async.AsyncUsbEscPosPrint;
 import com.zeezaglobal.posresturant.R;
+import com.zeezaglobal.posresturant.Repository.CartItemStore;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class PrintActivity extends AppCompatActivity {
 
@@ -57,7 +60,15 @@ public class PrintActivity extends AppCompatActivity {
         button.setOnClickListener(view -> printUsb());
         button = (Button) this.findViewById(R.id.button_tcp);
         button.setOnClickListener(view -> printTcp());
+        // Access the cartItemList from CartItemStore
+        List<CartItem> cartItemList = CartItemStore.INSTANCE.getCartItemList();
 
+        if (cartItemList != null) {
+            for (CartItem item : cartItemList) {
+
+
+            }
+        }
     }
 
 
