@@ -60,7 +60,7 @@ class HomeFragment : Fragment() {
         val application = requireActivity().application as POSApp
         val groupRepository = GroupRepository((application).database.groupDao())
         val itemRepository = ItemRepository((application).database.itemDao())
-        val posViewModelFactory = POSViewModelFactory(groupRepository,itemRepository)
+        val posViewModelFactory = POSViewModelFactory(groupRepository, itemRepository)
         addNewViewModel = ViewModelProvider(this, posViewModelFactory).get(
             AddNewViewModel::class.java
         )
@@ -78,22 +78,24 @@ class HomeFragment : Fragment() {
         searchProduct = binding.searchProduct
         sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
         horizondalrecyclerView = binding.groupRv
-        horizondalrecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        horizondalrecyclerView.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         // Initialize adapter with touch handler (onItemClick lambda)
 
 
         horizondaladapter = HorizondalAdapter(emptyList()) { clickedItem ->
-            Toast.makeText(requireContext(), "Clicked", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Yet to implement", Toast.LENGTH_SHORT).show()
         }
         // Initialize item list
         addNewViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
-            var groupNames = groupList.map { it.groupName } // Assuming Group has a property named groupName
+            var groupNames =
+                groupList.map { it.groupName } // Assuming Group has a property named groupName
             horizondaladapter.updateItems(groupNames)
         })
 
-        CheckoutButton.setOnClickListener{
+        CheckoutButton.setOnClickListener {
             CartItemStore.cartItemList = listOfCartItems
-startActivity(Intent(requireContext(),PrintActivity::class.java))
+            startActivity(Intent(requireContext(), PrintActivity::class.java))
         }
 
         horizondalrecyclerView.adapter = horizondaladapter
@@ -119,8 +121,8 @@ startActivity(Intent(requireContext(),PrintActivity::class.java))
             }
 
             updateCart(listOfCartItems)
-           // sharedPreferencesHelper.saveCartItemToSharedPreferences(selectedItem)
-         //   loadCartFromSharedPreferences()
+            // sharedPreferencesHelper.saveCartItemToSharedPreferences(selectedItem)
+            //   loadCartFromSharedPreferences()
         }
         itemRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2) // 2 columns
         itemRecyclerView.adapter = adapter
@@ -195,9 +197,6 @@ startActivity(Intent(requireContext(),PrintActivity::class.java))
     }
 
 
-
-
-
     private fun calculateTotals(cartItemList: List<CartItem>) {
         val subtotal = cartItemList.sumOf { it.item.itemPrice * it.quantity }
         val tax = subtotal * 0.18
@@ -207,6 +206,7 @@ startActivity(Intent(requireContext(),PrintActivity::class.java))
         taxTextView.text = String.format("₹%.2f", tax)
         totalTextView.text = String.format("₹%.2f", total)
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
 

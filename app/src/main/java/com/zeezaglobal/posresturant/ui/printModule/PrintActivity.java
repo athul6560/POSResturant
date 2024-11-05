@@ -22,6 +22,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.dantsu.escposprinter.connection.DeviceConnection;
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
@@ -32,6 +34,7 @@ import com.dantsu.escposprinter.connection.usb.UsbPrintersConnections;
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 
 
+import com.zeezaglobal.posresturant.Adapters.CartItemAdapter;
 import com.zeezaglobal.posresturant.Entities.CartItem;
 import com.zeezaglobal.posresturant.Printer.async.AsyncBluetoothEscPosPrint;
 import com.zeezaglobal.posresturant.Printer.async.AsyncEscPosPrint;
@@ -62,11 +65,16 @@ public class PrintActivity extends AppCompatActivity {
         button.setOnClickListener(view -> printTcp());
         // Access the cartItemList from CartItemStore
         List<CartItem> cartItemList = CartItemStore.INSTANCE.getCartItemList();
+        // Retrieve the cart item list
 
+        // Initialize RecyclerView
+        RecyclerView recyclerView = findViewById(R.id.recyclerview_chckout);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         if (cartItemList != null) {
             for (CartItem item : cartItemList) {
 
-
+                CartItemAdapter adapter = new CartItemAdapter(cartItemList);
+                recyclerView.setAdapter(adapter);
             }
         }
     }
