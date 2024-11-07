@@ -16,6 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -49,7 +50,11 @@ import java.util.Date;
 import java.util.List;
 
 public class PrintActivity extends AppCompatActivity {
-
+    private TextView subtotalTextView;
+    private TextView taxTextView;
+    private TextView totalTextView;
+    private List<CartItem> cartItemList;
+    private final double taxRate = 0.10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +69,15 @@ public class PrintActivity extends AppCompatActivity {
         button = (Button) this.findViewById(R.id.button_tcp);
         button.setOnClickListener(view -> printTcp());
         // Access the cartItemList from CartItemStore
-        List<CartItem> cartItemList = CartItemStore.INSTANCE.getCartItemList();
+         cartItemList = CartItemStore.INSTANCE.getCartItemList();
         // Retrieve the cart item list
+        // Initialize TextViews by their IDs
+        subtotalTextView = findViewById(R.id.textView8);
+        taxTextView = findViewById(R.id.textView9);
+        totalTextView = findViewById(R.id.textView10);
 
+        // Assume cartItemList is populated with data from the cart
+        calculateTotals();
         // Initialize RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerview_chckout);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -77,6 +88,25 @@ public class PrintActivity extends AppCompatActivity {
                 recyclerView.setAdapter(adapter);
             }
         }
+    }
+
+    private void calculateTotals() {
+        // Calculate subtotal
+        double subtotal = 0.0;
+        for (CartItem cartItem : cartItemList) {
+            subtotal += cartItem.getItem().getItemPrice() * cartItem.getQuantity();
+        }
+
+        // Calculate tax
+        double tax = subtotal * taxRate;
+
+        // Calculate total
+        double total = subtotal + tax;
+
+        // Display calculated values in the TextViews
+        subtotalTextView.setText(String.format("₹%.2f", subtotal));
+        taxTextView.setText(String.format("₹%.2f", tax));
+        totalTextView.setText(String.format("₹%.2f", total));
     }
 
 
@@ -291,39 +321,65 @@ public class PrintActivity extends AppCompatActivity {
      */
     @SuppressLint("SimpleDateFormat")
     public AsyncEscPosPrinter getAsyncEscPosPrinter(DeviceConnection printerConnection) {
-        SimpleDateFormat format = new SimpleDateFormat("'on' yyyy-MM-dd 'at' HH:mm:ss");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         AsyncEscPosPrinter printer = new AsyncEscPosPrinter(printerConnection, 203, 48f, 32);
-        return printer.addTextToPrint(
-                "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, this.getApplicationContext().getResources().getDrawableForDensity(R.drawable.logo, DisplayMetrics.DENSITY_MEDIUM)) + "</img>\n" +
-                        "[L]\n" +
-                        "[C]<u><font size='big'>ORDER N°045</font></u>\n" +
-                        "[L]\n" +
-                        "[C]<u type='double'>" + format.format(new Date()) + "</u>\n" +
-                        "[C]\n" +
-                        "[C]================================\n" +
-                        "[L]\n" +
-                        "[L]<b>BEAUTIFUL SHIRT</b>[R]9.99€\n" +
-                        "[L]  + Size : S\n" +
-                        "[L]\n" +
-                        "[L]<b>AWESOME HAT</b>[R]24.99€\n" +
-                        "[L]  + Size : 57/58\n" +
-                        "[L]\n" +
-                        "[C]--------------------------------\n" +
-                        "[R]TOTAL PRICE :[R]34.98€\n" +
-                        "[R]TAX :[R]4.23€\n" +
-                        "[L]\n" +
-                        "[C]================================\n" +
-                        "[L]\n" +
-                        "[L]<u><font color='bg-black' size='tall'>Customer :</font></u>\n" +
-                        "[L]Raymond DUPONT\n" +
-                        "[L]5 rue des girafes\n" +
-                        "[L]31547 PERPETES\n" +
-                        "[L]Tel : +33801201456\n" +
-                        "\n" +
-                        "[C]<barcode type='ean13' height='10'>831254784551</barcode>\n" +
-                        "[L]\n" +
-                        "[C]<qrcode size='20'>https://dantsu.com/</qrcode>\n"
-        );
+
+        // Generate a random token number and bill number
+        int tokenNumber = (int) (Math.random() * 1000) + 1;
+        int billNumber = (int) (Math.random() * 100000) + 1;
+
+        StringBuilder receiptContent = new StringBuilder();
+        receiptContent.append("[C]<img>")
+                .append(PrinterTextParserImg.bitmapToHexadecimalString(
+                        printer,
+                        this.getApplicationContext().getResources().getDrawableForDensity(R.drawable.logo, DisplayMetrics.DENSITY_MEDIUM)
+                ))
+                .append("</img>\n")
+                .append("[L]\n")
+                .append("[C]<u><font size='big'>BEAN BARREL</font></u>\n")
+                .append("[C]305 Eyre St, Kochi Kerala 691535\n")
+                .append("[C]Tel: +91 92077 78777\n")
+                .append("[C]Email: supportus@beanbarrel.in\n")
+                .append("[C]================================\n")
+                .append("[L]\n")
+                .append("[L]Date & Time: ").append(format.format(new Date())).append("\n")
+                .append("[L]Token N°: ").append(tokenNumber).append("\n")
+                .append("[L]Bill N°: ").append(billNumber).append("\n")
+                .append("[C]================================\n")
+                .append("[L]\n");
+
+        // Cart items section
+        for (CartItem item : cartItemList) {
+            String itemName = item.getItem().getItemName();
+            double itemPrice = item.getItem().getItemPrice();
+            int quantity = item.getQuantity();
+            double totalItemPrice = itemPrice * quantity;
+
+            receiptContent.append("[L]<b>").append(itemName).append("</b>[R]").append(String.format("%.2f₹", totalItemPrice)).append("\n")
+                    .append("[L]  + Quantity: ").append(quantity).append("\n")
+                    .append("[L]\n");
+        }
+
+        receiptContent.append("[C]--------------------------------\n");
+
+        // Calculate subtotal, tax, and total
+        double subtotal = cartItemList.stream()
+                .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
+                .sum();
+        double tax = subtotal * 0.10; // Adjust tax rate if needed
+        double total = subtotal + tax;
+
+        // Totals section
+        receiptContent.append("[R]TOTAL PRICE :[R]").append(String.format("%.2f₹", subtotal)).append("\n")
+                .append("[R]TAX :[R]").append(String.format("%.2f₹", tax)).append("\n")
+                .append("[R]TOTAL :[R]").append(String.format("%.2f₹", total)).append("\n")
+                .append("[L]\n")
+                .append("[C]================================\n")
+                .append("[L]\n");
+
+        // Footer section with thank you note
+        receiptContent.append("[C]Thank you for shopping with us!\n");
+        return printer.addTextToPrint(receiptContent.toString());
     }
 }
 

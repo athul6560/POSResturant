@@ -30,7 +30,11 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
     @Override
     public void onBindViewHolder(@NonNull CartItemViewHolder holder, int position) {
         CartItem item = cartItemList.get(position);
-        holder.textViewItemName.setText(item.getItem().getItemName());
+        String itemName = item.getItem().getItemName();
+        String capitalizedItemName = itemName.substring(0, 1).toUpperCase() + itemName.substring(1).toLowerCase();
+        holder.textViewItemName.setText(capitalizedItemName);
+        holder.textViewItemPrice.setText(item.getItem().getItemPrice()+"");
+        holder.textViewItemCount.setText(item.getQuantity()+"");
 
     }
 
@@ -40,13 +44,14 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.CartIt
     }
 
     static class CartItemViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewItemName, textViewItemDescription, textViewItemPrice;
+        TextView textViewItemName, textViewItemDescription, textViewItemPrice,textViewItemCount;
 
         public CartItemViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewItemName = itemView.findViewById(R.id.textViewItemName);
             textViewItemDescription = itemView.findViewById(R.id.textViewItemDescription);
             textViewItemPrice = itemView.findViewById(R.id.textViewItemPrice);
+            textViewItemCount = itemView.findViewById(R.id.item_count);
         }
     }
 }
