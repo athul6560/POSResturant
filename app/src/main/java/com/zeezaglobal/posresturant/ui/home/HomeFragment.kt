@@ -199,7 +199,7 @@ class HomeFragment : Fragment() {
 
     private fun calculateTotals(cartItemList: List<CartItem>) {
         val subtotal = cartItemList.sumOf { it.item.itemPrice * it.quantity }
-        val tax = subtotal * 0.18
+        val tax = subtotal * 0
         val total = subtotal + tax
 
         subtotalTextView.text = String.format("₹%.2f", subtotal)

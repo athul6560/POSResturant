@@ -124,7 +124,7 @@
             android:layout_marginStart="32dp"
 
             android:layout_marginTop="8dp"
-
+android:visibility="gone"
             android:fontFamily="@font/roboto_medium"
             android:text="@string/total_sale_tax"
             android:textSize="15sp"
@@ -172,6 +172,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="32dp"
             android:text="₹0.00"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
@@ -322,7 +323,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textView20" />
 
         <TextView
-            android:id="@+id/textView22"
+            android:id="@+id/tocken_number"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
@@ -344,7 +345,7 @@
             android:textSize="15sp"
             android:text="Bill No: #439284"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView22" />
+            app:layout_constraintTop_toBottomOf="@+id/tocken_number" />
 
         <TextView
             android:id="@+id/textView24"

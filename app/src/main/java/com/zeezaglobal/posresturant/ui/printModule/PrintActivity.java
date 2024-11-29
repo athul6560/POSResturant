@@ -43,18 +43,28 @@ import com.zeezaglobal.posresturant.Printer.async.AsyncEscPosPrinter;
 import com.zeezaglobal.posresturant.Printer.async.AsyncTcpEscPosPrint;
 import com.zeezaglobal.posresturant.Printer.async.AsyncUsbEscPosPrint;
 import com.zeezaglobal.posresturant.R;
+
 import com.zeezaglobal.posresturant.Repository.CartItemStore;
+import com.zeezaglobal.posresturant.Utils.BillandTocken;
+
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class PrintActivity extends AppCompatActivity {
     private TextView subtotalTextView;
     private TextView taxTextView;
     private TextView totalTextView;
+    private TextView TockenNumber;
+    private TextView BillNumber;
+    private TextView DateandTime;
     private List<CartItem> cartItemList;
-    private final double taxRate = 0.10;
+    private Integer tokenNumber;
+    private Long billNumber;
+
+    private final double taxRate = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +77,9 @@ public class PrintActivity extends AppCompatActivity {
         button = (Button) this.findViewById(R.id.button_usb);
         button.setOnClickListener(view -> printUsb());
         button = (Button) this.findViewById(R.id.button_tcp);
+        TockenNumber = (TextView) this.findViewById(R.id.tocken_number);
+        BillNumber = (TextView) this.findViewById(R.id.textView23);
+        DateandTime = (TextView) this.findViewById(R.id.textView24);
         button.setOnClickListener(view -> printTcp());
         // Access the cartItemList from CartItemStore
          cartItemList = CartItemStore.INSTANCE.getCartItemList();
@@ -78,6 +91,15 @@ public class PrintActivity extends AppCompatActivity {
 
         // Assume cartItemList is populated with data from the cart
         calculateTotals();
+
+
+        BillandTocken generator = new BillandTocken(this);
+        tokenNumber = generator.generateToken();
+        billNumber=generator.generateUniqueBillNumber();
+        TockenNumber.setText("Token : "+tokenNumber);
+        BillNumber.setText("Bill Number : "+billNumber);
+
+        DateandTime.setText("Date & Time : "+getCurrentDateAndTime());
         // Initialize RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerview_chckout);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -88,6 +110,12 @@ public class PrintActivity extends AppCompatActivity {
                 recyclerView.setAdapter(adapter);
             }
         }
+    }
+
+    private String getCurrentDateAndTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mma", Locale.getDefault());
+        Date currentDate = new Date();
+        return dateFormat.format(currentDate).toLowerCase(Locale.getDefault());
     }
 
     private void calculateTotals() {
@@ -325,8 +353,7 @@ public class PrintActivity extends AppCompatActivity {
         AsyncEscPosPrinter printer = new AsyncEscPosPrinter(printerConnection, 203, 48f, 32);
 
         // Generate a random token number and bill number
-        int tokenNumber = (int) (Math.random() * 1000) + 1;
-        int billNumber = (int) (Math.random() * 100000) + 1;
+
 
         StringBuilder receiptContent = new StringBuilder();
         receiptContent.append("[C]<img>")
@@ -371,7 +398,7 @@ public class PrintActivity extends AppCompatActivity {
 
         // Totals section
         receiptContent.append("[R]TOTAL PRICE :[R]").append(String.format("%.2f₹", subtotal)).append("\n")
-                .append("[R]TAX :[R]").append(String.format("%.2f₹", tax)).append("\n")
+
                 .append("[R]TOTAL :[R]").append(String.format("%.2f₹", total)).append("\n")
                 .append("[L]\n")
                 .append("[C]================================\n")
