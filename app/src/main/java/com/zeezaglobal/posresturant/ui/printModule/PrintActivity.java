@@ -307,6 +307,7 @@ public class PrintActivity extends AppCompatActivity {
     public void printTcp() {
         final EditText ipAddress = (EditText) this.findViewById(R.id.edittext_tcp_ip);
         final EditText portAddress = (EditText) this.findViewById(R.id.edittext_tcp_port);
+        addToSales();
 
         try {
             new AsyncTcpEscPosPrint(
@@ -340,6 +341,10 @@ public class PrintActivity extends AppCompatActivity {
         }
     }
 
+    private void addToSales() {
+
+    }
+
     /*==============================================================================================
     ===================================ESC/POS PRINTER PART=========================================
     ==============================================================================================*/
@@ -353,8 +358,6 @@ public class PrintActivity extends AppCompatActivity {
         AsyncEscPosPrinter printer = new AsyncEscPosPrinter(printerConnection, 203, 48f, 32);
 
         // Generate a random token number and bill number
-
-
         StringBuilder receiptContent = new StringBuilder();
         receiptContent.append("[C]<img>")
                 .append(PrinterTextParserImg.bitmapToHexadecimalString(
@@ -364,7 +367,7 @@ public class PrintActivity extends AppCompatActivity {
                 .append("</img>\n")
                 .append("[L]\n")
                 .append("[C]<u><font size='big'>BEAN BARREL</font></u>\n")
-                .append("[C]305 Eyre St, Kochi Kerala 691535\n")
+
                 .append("[C]Tel: +91 92077 78777\n")
                 .append("[C]Email: supportus@beanbarrel.in\n")
                 .append("[C]================================\n")
@@ -389,23 +392,31 @@ public class PrintActivity extends AppCompatActivity {
 
         receiptContent.append("[C]--------------------------------\n");
 
-        // Calculate subtotal, tax, and total
+        // Calculate subtotal only
         double subtotal = cartItemList.stream()
                 .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
                 .sum();
-        double tax = subtotal * 0.10; // Adjust tax rate if needed
-        double total = subtotal + tax;
 
-        // Totals section
+        // Totals section without tax
         receiptContent.append("[R]TOTAL PRICE :[R]").append(String.format("%.2f₹", subtotal)).append("\n")
-
-                .append("[R]TOTAL :[R]").append(String.format("%.2f₹", total)).append("\n")
                 .append("[L]\n")
                 .append("[C]================================\n")
                 .append("[L]\n");
 
         // Footer section with thank you note
         receiptContent.append("[C]Thank you for shopping with us!\n");
+
+        // Adding Token number section
+        receiptContent.append("\n\n")
+                .append("[C]<u><font size='big'>CUSTOMER TOKEN RECEIPT</font></u>\n")
+                .append("[C]================================\n")
+                .append("[C]<font size='huge'>Token N°: ").append(tokenNumber).append("</font>\n")
+                .append("[C]================================\n");
+
+        // Add Date and Time under Token Number
+        receiptContent.append("[C]<font size='normal'>Date & Time: ").append(format.format(new Date())).append("</font>\n")
+                .append("[L]\n");
+
         return printer.addTextToPrint(receiptContent.toString());
     }
 }
