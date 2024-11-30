@@ -10,7 +10,7 @@ import com.zeezaglobal.posresturant.Entities.Sale
 interface SaleDao {
 
     @Insert
-    suspend fun insertSale(sale: Sale)
+     fun insertSale(sale: Sale)
 
     @Query("SELECT * FROM sales")
     suspend fun getAllSales(): List<Sale>
