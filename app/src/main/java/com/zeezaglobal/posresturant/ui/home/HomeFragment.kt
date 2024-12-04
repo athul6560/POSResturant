@@ -1,5 +1,6 @@
 package com.zeezaglobal.posresturant.ui.home
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -7,20 +8,25 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.internal.ViewUtils.hideKeyboard
 import com.zeezaglobal.posresturant.Adapters.CartAdapter
 import com.zeezaglobal.posresturant.Adapters.GridAdapter
-import com.zeezaglobal.posresturant.Adapters.HorizondalAdapter
+
+import com.zeezaglobal.posresturant.Adapters.HorizontalAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
 import com.zeezaglobal.posresturant.Entities.CartItem
 import com.zeezaglobal.posresturant.Repository.CartItemStore
@@ -46,7 +52,7 @@ class HomeFragment : Fragment() {
     private lateinit var clearCart: RelativeLayout
     private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
     private lateinit var horizondalrecyclerView: RecyclerView
-    private lateinit var horizondaladapter: HorizondalAdapter
+    private lateinit var horizondaladapter: HorizontalAdapter
     private lateinit var CheckoutButton: Button
     private lateinit var searchProduct: EditText
 
@@ -83,14 +89,17 @@ class HomeFragment : Fragment() {
         // Initialize adapter with touch handler (onItemClick lambda)
 
 
-        horizondaladapter = HorizondalAdapter(emptyList()) { clickedItem ->
-            Toast.makeText(requireContext(), "Yet to implement", Toast.LENGTH_SHORT).show()
+        horizondaladapter = HorizontalAdapter(emptyList()) { clickedItem ->
+            Toast.makeText(
+                requireContext(),
+                "Yet to implement" + clickedItem.toString(),
+                Toast.LENGTH_SHORT
+            ).show()
         }
         // Initialize item list
         addNewViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
-            var groupNames =
-                groupList.map { it.groupName } // Assuming Group has a property named groupName
-            horizondaladapter.updateItems(groupNames)
+            // Directly pass the group list as it is, since the adapter expects a List<Group>
+            horizondaladapter.updateGroups(groupList)
         })
 
         CheckoutButton.setOnClickListener {
@@ -130,7 +139,21 @@ class HomeFragment : Fragment() {
         addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
             adapter.updateItems(itemList)
         })
+
 // Implement search functionality
+        searchProduct.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+
+                val imm =
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(searchProduct.windowToken, 0)
+                // Clear focus from the EditText
+                searchProduct.clearFocus()
+                true
+            } else {
+                false
+            }
+        }
         searchProduct.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 // Call filter method on adapter whenever search query changes

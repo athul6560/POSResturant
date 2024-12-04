@@ -25,4 +25,7 @@ class ItemRepository(private val itemDao: ItemDao) {
     suspend fun getAllItem() = withContext(Dispatchers.IO) {
         itemDao.getAllItems()
     }
+    suspend fun updateItem(item: Item) = withContext(Dispatchers.IO) {
+        itemDao.updateItem(item)
+    }
 }

@@ -20,14 +20,17 @@
         android:theme="@style/Theme.POSResturant"
         tools:targetApi="31">
         <activity
-            android:name=".ui.printModule.PrintActivity"
-            android:screenOrientation="landscape"
+            android:name=".ui.EditMenu.EditMenuActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.printModule.PrintActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:screenOrientation="landscape"
             android:label="@string/app_name"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.POSResturant.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -2,6 +2,7 @@ package com.zeezaglobal.posresturant.ui.addNewItem
 
 import android.R
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,16 +19,20 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import com.zeezaglobal.posresturant.Adapters.ItemAdapter
+import com.zeezaglobal.posresturant.Adapters.ItemEditListener
 import com.zeezaglobal.posresturant.Application.POSApp
+import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentAddNewBinding
+import com.zeezaglobal.posresturant.ui.EditMenu.EditMenuActivity
 
 
-class AddNewItemFragment : Fragment() {
+class AddNewItemFragment : Fragment() , ItemEditListener {
 
     private var _binding: FragmentAddNewBinding? = null
     private lateinit var addNewViewModel: AddNewViewModel
@@ -64,7 +69,7 @@ class AddNewItemFragment : Fragment() {
 
         // Set up RecyclerView
         itemRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        itemAdapter = ItemAdapter(emptyList())
+        itemAdapter = ItemAdapter(emptyList(),this)
         itemRecyclerView.adapter = itemAdapter
 
         // Set up the ImageButton click listener
@@ -171,5 +176,18 @@ class AddNewItemFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onEditItem(item: Item, position: Int) {
+
+        val gson = Gson()
+        val itemJson = gson.toJson(item)
+
+        // Pass JSON string via Intent
+        val intent = Intent(requireContext(), EditMenuActivity::class.java).apply {
+            putExtra("EXTRA_ITEM_JSON", itemJson)
+        }
+        startActivity(intent)
+
     }
 }

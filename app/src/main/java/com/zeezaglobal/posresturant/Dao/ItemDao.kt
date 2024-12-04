@@ -3,6 +3,7 @@ package com.zeezaglobal.posresturant.Dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.zeezaglobal.posresturant.Entities.Item
 
 @Dao
@@ -19,4 +20,7 @@ interface ItemDao {
 
     @Query("SELECT * FROM item_table") // New method to get all items
     suspend fun getAllItems(): List<Item>
+
+    @Update
+    suspend fun updateItem(item: Item)
 }
