@@ -236,5 +236,11 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 
+    override fun onResume() {
 
+        super.onResume()
+        addNewViewModel.loadGroups() // Fetch the latest groups from the database
+        addNewViewModel.loadItems()
+
+    }
 }
