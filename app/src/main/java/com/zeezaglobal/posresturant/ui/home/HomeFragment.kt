@@ -15,21 +15,20 @@ import android.widget.EditText
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.internal.ViewUtils.hideKeyboard
 import com.zeezaglobal.posresturant.Adapters.CartAdapter
 import com.zeezaglobal.posresturant.Adapters.GridAdapter
 
 import com.zeezaglobal.posresturant.Adapters.HorizontalAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
+import com.zeezaglobal.posresturant.Dialogues.PaymentMethodDialog
 import com.zeezaglobal.posresturant.Entities.CartItem
-import com.zeezaglobal.posresturant.Repository.CartItemStore
+import com.zeezaglobal.posresturant.Entities.CartItemStore
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
@@ -90,11 +89,10 @@ class HomeFragment : Fragment() {
 
 
         horizondaladapter = HorizontalAdapter(emptyList()) { clickedItem ->
-            Toast.makeText(
-                requireContext(),
-                "Yet to implement" + clickedItem.toString(),
-                Toast.LENGTH_SHORT
-            ).show()
+            val groupId = clickedItem.groupId // Replace 'id' with the correct property of your category
+
+            // Filter the grid items based on the selected category
+            adapter.filterByGroup(groupId)
         }
         // Initialize item list
         addNewViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
@@ -103,8 +101,21 @@ class HomeFragment : Fragment() {
         })
 
         CheckoutButton.setOnClickListener {
-            CartItemStore.cartItemList = listOfCartItems
-            startActivity(Intent(requireContext(), PrintActivity::class.java))
+            if (listOfCartItems.isEmpty()) {
+                Toast.makeText(requireContext(), "Cart is empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val paymentDialog = PaymentMethodDialog(requireContext())
+            paymentDialog.setPaymentMethodListener(object : PaymentMethodDialog.PaymentMethodListener {
+                override fun onPaymentMethodSelected(method: String) {
+
+                    CartItemStore.cartItemList = listOfCartItems
+                    CartItemStore.paymentMethod=method
+                    startActivity(Intent(requireContext(), PrintActivity::class.java))
+                }
+            })
+            paymentDialog.show()
+
         }
 
         horizondalrecyclerView.adapter = horizondaladapter

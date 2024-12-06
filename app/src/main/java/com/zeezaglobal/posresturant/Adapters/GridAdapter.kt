@@ -50,7 +50,7 @@ class GridAdapter(
         filteredItemList = itemList.toMutableList() // Reset filtered list
         notifyDataSetChanged()
     }
-    fun filterByCategory(groupId: Int?) {
+    fun filterByGroup(groupId: Int?) {
         filteredItemList = if (groupId == null) {
             itemList.toMutableList() // Show all items if groupId is null (e.g., "All" category)
         } else {

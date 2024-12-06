@@ -46,8 +46,7 @@ import com.zeezaglobal.posresturant.Printer.async.AsyncTcpEscPosPrint;
 import com.zeezaglobal.posresturant.Printer.async.AsyncUsbEscPosPrint;
 import com.zeezaglobal.posresturant.R;
 
-import com.zeezaglobal.posresturant.Repository.CartItemStore;
-import com.zeezaglobal.posresturant.Repository.ItemRepository;
+import com.zeezaglobal.posresturant.Entities.CartItemStore;
 import com.zeezaglobal.posresturant.Repository.SaleRepository;
 import com.zeezaglobal.posresturant.Utils.BillandTocken;
 
@@ -61,6 +60,7 @@ public class PrintActivity extends AppCompatActivity {
     private TextView subtotalTextView;
     private TextView taxTextView;
     private TextView totalTextView;
+    private TextView paymentMethod;
     private TextView TockenNumber;
     private TextView BillNumber;
     private TextView DateandTime;
@@ -82,6 +82,7 @@ public class PrintActivity extends AppCompatActivity {
         button.setOnClickListener(view -> printUsb());
         button = (Button) this.findViewById(R.id.button_tcp);
         TockenNumber = (TextView) this.findViewById(R.id.tocken_number);
+        paymentMethod = (TextView) this.findViewById(R.id.payment_method);
         BillNumber = (TextView) this.findViewById(R.id.textView23);
         DateandTime = (TextView) this.findViewById(R.id.textView24);
         button.setOnClickListener(view -> printTcp());
@@ -92,7 +93,7 @@ public class PrintActivity extends AppCompatActivity {
         subtotalTextView = findViewById(R.id.textView8);
         taxTextView = findViewById(R.id.textView9);
         totalTextView = findViewById(R.id.textView10);
-
+paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
         // Assume cartItemList is populated with data from the cart
         calculateTotals();
          saleRepository = new SaleRepository(((POSApp) getApplication()).getDatabase().saleDao());
@@ -377,15 +378,15 @@ public class PrintActivity extends AppCompatActivity {
                 ))
                 .append("</img>\n")
                 .append("[L]\n")
-                .append("[C]<u><font size='big'>BEAN BARREL</font></u>\n")
+                .append("[C]<font size='big'>BEAN BARREL</font>\n")
 
                 .append("[C]Tel: +91 92077 78777\n")
                 .append("[C]Email: supportus@beanbarrel.in\n")
                 .append("[C]================================\n")
                 .append("[L]\n")
                 .append("[L]Date & Time: ").append(format.format(new Date())).append("\n")
-                .append("[L]Token N°: ").append(tokenNumber).append("\n")
-                .append("[L]Bill N°: ").append(billNumber).append("\n")
+                .append("[L]Token: ").append(tokenNumber).append("\n")
+                .append("[L]Bill: ").append(billNumber).append("\n")
                 .append("[C]================================\n")
                 .append("[L]\n");
 
@@ -419,9 +420,9 @@ public class PrintActivity extends AppCompatActivity {
 
         // Adding Token number section
         receiptContent.append("\n\n")
-                .append("[C]<u><font size='big'>CUSTOMER TOKEN RECEIPT</font></u>\n")
+                .append("[C]<font size='big'>CUSTOMER TOKEN RECEIPT</font>\n")
                 .append("[C]================================\n")
-                .append("[C]<font size='huge'>Token N°: ").append(tokenNumber).append("</font>\n")
+                .append("[C]<font size='big'>Token Number: ").append(tokenNumber).append("</font>\n")
                 .append("[C]================================\n");
 
         // Add Date and Time under Token Number
