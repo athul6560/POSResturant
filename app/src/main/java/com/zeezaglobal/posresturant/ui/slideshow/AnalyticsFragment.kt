@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.zeezaglobal.posresturant.databinding.FragmentSlideshowBinding
 
-class SlideshowFragment : Fragment() {
+class AnalyticsFragment : Fragment() {
 
     private var _binding: FragmentSlideshowBinding? = null
 
@@ -22,14 +22,14 @@ class SlideshowFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val slideshowViewModel =
-            ViewModelProvider(this).get(SlideshowViewModel::class.java)
+        val analyticsViewModel =
+            ViewModelProvider(this).get(AnalyticsViewModel::class.java)
 
         _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textSlideshow
-        slideshowViewModel.text.observe(viewLifecycleOwner) {
+        analyticsViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root

@@ -50,7 +50,15 @@ class GridAdapter(
         filteredItemList = itemList.toMutableList() // Reset filtered list
         notifyDataSetChanged()
     }
-
+    fun filterByGroup(groupId: Int?) {
+        filteredItemList = if (groupId == null) {
+            itemList.toMutableList() // Show all items if groupId is null (e.g., "All" category)
+        } else {
+            itemList.filter { it.groupId == groupId }
+                .toMutableList() // Filter by groupId
+        }
+        notifyDataSetChanged()
+    }
     fun filterItems(query: String) {
         if (query.isEmpty()) {
             // If query is empty, reset to the full list
