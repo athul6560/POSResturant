@@ -3,6 +3,10 @@ package com.zeezaglobal.posresturant.Entities
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 @Entity(tableName = "sales")
 data class Sale(
@@ -11,5 +15,7 @@ data class Sale(
     val billNumber: Long,
     val tokenNumber: Long,
     val totalAmount: Double,
-    val dateTime: String
+    val dateTime: String,
+    @TypeConverters(CartItemListConverter::class) // Use CartItemListConverter
+    val items: List<CartItem>
 )

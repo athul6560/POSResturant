@@ -7,11 +7,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.zeezaglobal.posresturant.databinding.FragmentSlideshowBinding
+import com.zeezaglobal.posresturant.R
+import com.zeezaglobal.posresturant.databinding.FragmentAnalyticsBinding
+import com.zeezaglobal.posresturant.ui.customVies.SalesProgressView
+
 
 class AnalyticsFragment : Fragment() {
 
-    private var _binding: FragmentSlideshowBinding? = null
+    private var _binding: FragmentAnalyticsBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -25,13 +28,11 @@ class AnalyticsFragment : Fragment() {
         val analyticsViewModel =
             ViewModelProvider(this).get(AnalyticsViewModel::class.java)
 
-        _binding = FragmentSlideshowBinding.inflate(inflater, container, false)
+        _binding = FragmentAnalyticsBinding.inflate(inflater, container, false)
         val root: View = binding.root
+        val salesView = root.findViewById<SalesProgressView>(R.id.salesProgressView)
+        salesView.setSalesData(cashSales = 500, upiSales = 300, creditCardSales = 200)
 
-        val textView: TextView = binding.textSlideshow
-        analyticsViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
         return root
     }
 

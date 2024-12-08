@@ -352,7 +352,7 @@ paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
                 BillNumber,      // Bill Number
                 TockenNumber,        // Token Number
                 TotalAmount,       // Total Amount
-                DateTime // DateTime
+                DateTime ,cartItemList
         );
         saleRepository.insertSale(sale);
     }
