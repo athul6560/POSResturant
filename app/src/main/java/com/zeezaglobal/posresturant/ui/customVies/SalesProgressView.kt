@@ -43,7 +43,7 @@ class SalesProgressView @JvmOverloads constructor(
 
     fun setSalesData(cashSales: Double, upiSales: Double, creditCardSales: Double) {
         val totalSales = cashSales + upiSales + creditCardSales
-        totalSalesText.text = "Total Sales: $$totalSales"
+        totalSalesText.text = "Total Sales: ₹$totalSales"
 
         if (totalSales > 0) {
             val cashPercentage = ((cashSales * 100.0) / totalSales).roundToInt()
@@ -56,9 +56,9 @@ class SalesProgressView @JvmOverloads constructor(
             creditCardProgressBar.progress = creditCardPercentage.toInt()
 
             // Update individual sales amounts
-            cashSalesAmount.text = "$$cashSales"
-            upiSalesAmount.text = "$$upiSales"
-            creditCardSalesAmount.text = "$$creditCardSales"
+            cashSalesAmount.text = "₹$cashSales"
+            upiSalesAmount.text = "₹$upiSales"
+            creditCardSalesAmount.text = "₹$creditCardSales"
 
             // Update percentages
             cashPercentageText.text = "$cashPercentage%"
@@ -69,7 +69,7 @@ class SalesProgressView @JvmOverloads constructor(
             cashProgressBar.progress = 0
             upiProgressBar.progress = 0
             creditCardProgressBar.progress = 0
-            cashSalesAmount.text = "$0"
+            cashSalesAmount.text = "₹0"
             upiSalesAmount.text = "$0"
             creditCardSalesAmount.text = "$0"
             cashPercentageText.text = "0%"

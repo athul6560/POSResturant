@@ -22,6 +22,9 @@ import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentAnalyticsBinding
 import com.zeezaglobal.posresturant.ui.customVies.SalesProgressView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class AnalyticsFragment : Fragment() {
@@ -31,11 +34,11 @@ class AnalyticsFragment : Fragment() {
 
     private val binding get() = _binding!!
     private lateinit var textView22: TextView
-    private lateinit var textView26: TextView
+    private lateinit var subHeadingDate: TextView
     private lateinit var textView27: TextView
     private lateinit var textView28: TextView
     private lateinit var textView29: TextView
-    private lateinit var textView30: TextView
+    private lateinit var totalSalesText: TextView
     private lateinit var textView31: TextView
     private lateinit var heading: TextView
     private lateinit var subheading: TextView
@@ -57,11 +60,11 @@ class AnalyticsFragment : Fragment() {
         val root: View = binding.root
 
         textView22 = root.findViewById(R.id.textView22)
-        textView26 = root.findViewById(R.id.textView26)
+        subHeadingDate = root.findViewById(R.id.textView26)
         textView27 = root.findViewById(R.id.textView27)
         textView28 = root.findViewById(R.id.textView28)
         textView29 = root.findViewById(R.id.textView29)
-        textView30 = root.findViewById(R.id.textView30)
+        totalSalesText = root.findViewById(R.id.textView30)
         textView31 = root.findViewById(R.id.textView31)
         heading = root.findViewById(R.id.heading)
         subheading = root.findViewById(R.id.subheading)
@@ -72,15 +75,36 @@ class AnalyticsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         val adapter = SalesAdapter(emptyList())
         recyclerView.adapter = adapter
-
+        val dateFormat = SimpleDateFormat("dd-MMM-yy", Locale.getDefault()) // Change format if needed
+        val date = dateFormat.format(Date()) // Get today's date
+        subHeadingDate.text = date
         analyticsViewModel.sales.observe(viewLifecycleOwner, Observer { saleList ->
             adapter.updateSales(saleList)
             setGraph(saleList)
-
+            totalSalesText.setText(calculateTotalSales(saleList).toString())
+            saleAmount.setText("₹"+calculateTotalSalesAmount(saleList))
         })
         analyticsViewModel.fetchAllSales()
         return root
     }
+
+    private fun calculateTotalSalesAmount(saleList: List<Sale>?): Double {
+        // Check if saleList is null or empty, return 0.0 if true
+        if (saleList.isNullOrEmpty()) {
+            return 0.0
+        }
+
+        // Sum the totalAmount of all Sales in the list
+        val totalSales = saleList.sumOf { it.totalAmount }
+
+        return totalSales
+    }
+
+    private fun calculateTotalSales(saleList: List<Sale>?): Int {
+        // Check if saleList is null or empty, return 0 if true
+        return saleList?.size ?: 0
+    }
+
 
     private fun setGraph(saleList: List<Sale>?) {
         var cashSales = 0.0

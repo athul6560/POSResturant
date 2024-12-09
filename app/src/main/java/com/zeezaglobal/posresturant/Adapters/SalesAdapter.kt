@@ -25,7 +25,7 @@ class SalesAdapter(private var salesList: List<Sale>) : RecyclerView.Adapter<Sal
         holder.saleId.text = "Sale ID: ${sale.id}"
         holder.billNumber.text = "Bill Number: ${sale.billNumber}"
         holder.tokenNumber.text = "Token: ${sale.tokenNumber}"
-        holder.totalAmount.text = "Total: $${sale.totalAmount}"
+        holder.totalAmount.text = "Total: ₹${sale.totalAmount}"
         holder.dateTime.text = "Date/Time: ${formatDate(sale.dateTime)}"
 
         // Convert items to a readable string if necessary
