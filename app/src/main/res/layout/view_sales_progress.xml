@@ -7,82 +7,148 @@
         android:id="@+id/totalSalesText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Total Sales: $0"
-        android:textSize="18sp"
         android:textColor="@android:color/black"
-        android:layout_marginBottom="16dp" />
+        android:textSize="18sp" />
 
+    <!-- Row for Cash Sales -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
+        <!-- Sales Method Label (Cash Sales) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Cash Sales"
+            android:textColor="@android:color/black"
+            android:textSize="10sp" />
+
+        <!-- Sale amount -->
+        <TextView
+            android:id="@+id/cashSalesAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="$0"
+            android:textSize="14sp" />
+
+        <!-- Progress bar -->
         <ProgressBar
             android:id="@+id/cashProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:progress="0"
             android:max="100"
-            android:progressTint="@color/cashColor"
-            style="?android:attr/progressBarStyleHorizontal" />
+            android:progress="50"
+            android:progressTint="@color/cashColor" />
 
+        <!-- Percentage -->
         <TextView
             android:id="@+id/cashPercentageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="0%"
+            android:text="50%"
             android:textSize="14sp" />
     </LinearLayout>
 
+    <!-- Row for UPI Sales -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
+        <!-- Sales Method Label (UPI Sales) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="UPI Sales"
+            android:textColor="@android:color/black"
+            android:textSize="10sp" />
+
+        <!-- Sale amount -->
+        <TextView
+            android:id="@+id/upiSalesAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="$0"
+            android:textSize="14sp" />
+
+        <!-- Progress bar -->
         <ProgressBar
             android:id="@+id/upiProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:progress="0"
             android:max="100"
-            android:progressTint="@color/upiColor"
-            style="?android:attr/progressBarStyleHorizontal" />
+            android:progress="60"
+            android:progressTint="@color/upiColor" />
 
+        <!-- Percentage -->
         <TextView
             android:id="@+id/upiPercentageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="0%"
+            android:text="60%"
             android:textSize="14sp" />
     </LinearLayout>
 
+    <!-- Row for Credit Card Sales -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <!-- Sales Method Label (Credit Card Sales) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Card Sales"
+            android:textColor="@android:color/black"
+            android:textSize="10sp" />
+
+        <!-- Sale amount -->
+        <TextView
+            android:id="@+id/creditCardSalesAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="$0"
+            android:textSize="14sp" />
+
+        <!-- Progress bar -->
         <ProgressBar
             android:id="@+id/creditCardProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:progress="0"
             android:max="100"
-            android:progressTint="@color/creditCardColor"
-            style="?android:attr/progressBarStyleHorizontal" />
+            android:progress="30"
+            android:progressTint="@color/creditCardColor" />
 
+        <!-- Percentage -->
         <TextView
             android:id="@+id/creditCardPercentageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="0%"
+            android:text="30%"
             android:textSize="14sp" />
     </LinearLayout>
 </merge>

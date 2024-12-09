@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/item_background"
+    android:layout_marginBottom="8dp">
+    <TextView
+        android:id="@+id/saleId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sale ID: 0"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/billNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bill Number: 0"
+        android:textSize="14sp" />
+
+    <!-- Token Number -->
+    <TextView
+        android:id="@+id/tokenNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Token: 0"
+        android:textSize="14sp" />
+
+    <!-- Total Amount and Date -->
+    <TextView
+        android:id="@+id/totalAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total: $0.0"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/dateTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date/Time: 0"
+        android:textSize="14sp" />
+
+    <!-- Items (Optional if you want to show items as a string) -->
+
+</LinearLayout>

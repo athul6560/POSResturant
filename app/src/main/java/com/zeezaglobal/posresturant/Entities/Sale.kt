@@ -16,6 +16,8 @@ data class Sale(
     val tokenNumber: Long,
     val totalAmount: Double,
     val dateTime: String,
+    val paymentMethod: String,
     @TypeConverters(CartItemListConverter::class) // Use CartItemListConverter
-    val items: List<CartItem>
+    val items: List<CartItem>,
+
 )
