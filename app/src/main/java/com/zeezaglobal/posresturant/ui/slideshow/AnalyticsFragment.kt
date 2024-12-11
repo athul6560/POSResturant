@@ -1,33 +1,29 @@
 package com.zeezaglobal.posresturant.ui.slideshow
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Environment
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.zeezaglobal.posresturant.Adapters.SalesAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
-import com.zeezaglobal.posresturant.Entities.CartItem
-import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Entities.Sale
 import com.zeezaglobal.posresturant.R
-import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.SaleRepository
-import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
-import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
+import com.zeezaglobal.posresturant.Utils.DateTimeUtils
 import com.zeezaglobal.posresturant.databinding.FragmentAnalyticsBinding
 import com.zeezaglobal.posresturant.ui.customVies.SalesProgressView
 import java.io.File
@@ -46,7 +42,6 @@ class AnalyticsFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var textView22: TextView
     private lateinit var subHeadingDate: TextView
-    private lateinit var textView27: TextView
     private lateinit var textView28: TextView
     private lateinit var textView29: TextView
     private lateinit var totalSalesText: TextView
@@ -54,12 +49,16 @@ class AnalyticsFragment : Fragment() {
     private lateinit var heading: TextView
     private lateinit var calender_btn: ConstraintLayout
     private lateinit var subheading: TextView
+    private lateinit var dateSelectionDate: TextView
     private lateinit var saleAmount: TextView
     private lateinit var ExportButton: Button
     private lateinit var _saleList: List<Sale>
     private lateinit var salesView: SalesProgressView
     private lateinit var unit: TextView
-    private val PERMISSION_REQUEST_CODE = 101
+    private  val RANGE_SELECTION=0
+    private  val DAY_SELECTION=1
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -76,7 +75,7 @@ class AnalyticsFragment : Fragment() {
 
         textView22 = root.findViewById(R.id.textView22)
         subHeadingDate = root.findViewById(R.id.textView26)
-        textView27 = root.findViewById(R.id.textView27)
+        dateSelectionDate = root.findViewById(R.id.DateSelectionText)
         textView28 = root.findViewById(R.id.textView28)
         calender_btn = root.findViewById(R.id.calender_btn)
         textView29 = root.findViewById(R.id.textView29)
@@ -90,12 +89,13 @@ class AnalyticsFragment : Fragment() {
         salesView = root.findViewById(R.id.salesProgressView)
         val recyclerView: RecyclerView = root.findViewById(R.id.salesRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+
         val adapter = SalesAdapter(emptyList())
         recyclerView.adapter = adapter
-        val dateFormat =
-            SimpleDateFormat("dd-MMM-yy", Locale.getDefault()) // Change format if needed
-        val date = dateFormat.format(Date()) // Get today's date
-        subHeadingDate.text = date
+        // Get today's date
+        subHeadingDate.text = DateTimeUtils.getCurrentDate()
+        dateSelectionDate.text = DateTimeUtils.getCurrentDate()
         analyticsViewModel.sales.observe(viewLifecycleOwner, Observer { saleList ->
             _saleList = saleList
             adapter.updateSales(saleList)
@@ -103,14 +103,84 @@ class AnalyticsFragment : Fragment() {
             totalSalesText.setText(calculateTotalSales(saleList).toString())
             saleAmount.setText("₹" + calculateTotalSalesAmount(saleList))
         })
-        analyticsViewModel.fetchAllSales()
+        val currentDate = Date()
+        analyticsViewModel.fetchSalesForDate(currentDate)
         ExportButton.setOnClickListener {
-
-
             exportSalesToCSV(_saleList)
-
+        }
+        calender_btn.setOnClickListener {
+            //  calenderPopup()
+            showDropdownMenu(this.calender_btn)
         }
         return root
+    }
+
+    private fun showDropdownMenu(anchor: View) {
+        val popupMenu = PopupMenu(requireContext(), anchor)
+        popupMenu.menuInflater.inflate(R.menu.dropdown_menu, popupMenu.menu)
+
+        // Handle menu item clicks
+        popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_option1 -> {
+                    calenderPopup(DAY_SELECTION)
+                    true
+                }
+
+                R.id.menu_option2 -> {
+                    calenderPopup(RANGE_SELECTION)
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        popupMenu.show()
+    }
+
+    private fun calenderPopup(mode: Int) {
+        val calendarConstraints = CalendarConstraints.Builder()
+            .setStart(System.currentTimeMillis()) // Optional: Set start date
+            .setEnd(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365) // Optional: Set end date (1 year ahead)
+            .build()
+
+        // To select a single date
+        val singleDatePicker = MaterialDatePicker.Builder.datePicker()
+            .setCalendarConstraints(calendarConstraints)
+            .build()
+
+        singleDatePicker.addOnPositiveButtonClickListener { selection ->
+            val selectedDate =
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selection))
+            // Use selectedDate as needed
+            Toast.makeText(requireContext(), "Selected Date: $selectedDate", Toast.LENGTH_SHORT)
+                .show()
+        }
+
+        // To select a date range
+        val dateRangePicker = MaterialDatePicker.Builder.dateRangePicker()
+            .setCalendarConstraints(calendarConstraints)
+            .build()
+
+        dateRangePicker.addOnPositiveButtonClickListener { selection ->
+            val startDate =
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selection.first))
+            val endDate =
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selection.second))
+            // Use startDate and endDate as needed
+            Toast.makeText(
+                requireContext(),
+                "Selected Range: $startDate to $endDate",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        if (mode == 1)
+        // Show the date picker dialog
+            singleDatePicker.show(requireActivity().supportFragmentManager, "DATE_PICKER")
+        // Alternatively, for range selection
+        else
+            dateRangePicker.show(requireActivity().supportFragmentManager, "DATE_RANGE_PICKER")
     }
 
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.zeezaglobal.posresturant.Entities.Sale
 import com.zeezaglobal.posresturant.Repository.SaleRepository
 import kotlinx.coroutines.launch
+import java.util.Date
 
 class AnalyticsViewModel (private val saleRepository: SaleRepository) : ViewModel() {
 
@@ -14,11 +15,10 @@ class AnalyticsViewModel (private val saleRepository: SaleRepository) : ViewMode
     private val _sales = MutableLiveData<List<Sale>>()
     val sales: LiveData<List<Sale>> get() = _sales
 
-    // Function to load all sales
-    fun fetchAllSales() {
+    fun fetchSalesForDate(date: Date) {
         viewModelScope.launch {
             try {
-                val salesList = saleRepository.getAllSale()
+                val salesList = saleRepository.getSalesByDateRange(date)
                 _sales.postValue(salesList)
             } catch (e: Exception) {
                 // Handle error (e.g., log it, show error state in UI)
