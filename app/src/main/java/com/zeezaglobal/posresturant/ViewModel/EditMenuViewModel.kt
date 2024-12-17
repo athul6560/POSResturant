@@ -13,7 +13,8 @@ import kotlinx.coroutines.launch
 class EditMenuViewModel(private val groupRepository: GroupRepository,
                         private val itemRepository: ItemRepository
 ) : ViewModel(){
-
+    private val _groups = MutableLiveData<List<Group>>()
+    val groups: LiveData<List<Group>> get() = _groups
     private val _items = MutableLiveData<List<Item>>()
     val items: LiveData<List<Item>> get() = _items
 
@@ -23,7 +24,14 @@ class EditMenuViewModel(private val groupRepository: GroupRepository,
             _items.postValue(itemList)
         }
     }
-
+    fun loadGroups() {
+        viewModelScope.launch {
+            viewModelScope.launch {
+                val groupList = groupRepository.getAllGroups()
+                _groups.value = groupList
+            }
+        }
+    }
     // Function to edit/update an item
     fun editItem(item: Item) {
         viewModelScope.launch {

@@ -14,6 +14,9 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -82,6 +85,7 @@ public class PrintActivity extends AppCompatActivity {
         button = (Button) findViewById(R.id.button_bluetooth);
         button.setOnClickListener(view -> printBluetooth());
         button = (Button) this.findViewById(R.id.button_usb);
+       Button finishBtn = (Button) this.findViewById(R.id.finish_btn);
         button.setOnClickListener(view -> printUsb());
         button = (Button) this.findViewById(R.id.button_tcp);
         TockenNumber = (TextView) this.findViewById(R.id.tocken_number);
@@ -92,6 +96,13 @@ public class PrintActivity extends AppCompatActivity {
         customerName = (EditText) this.findViewById(R.id.customer_name);
        customerEmail= (EditText) this.findViewById(R.id.customer_email);
        customerPhone= (EditText) this.findViewById(R.id.customer_phone);
+
+       finishBtn.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               finish();
+           }
+       });
         button.setOnClickListener(view -> printTcp());
         // Access the cartItemList from CartItemStore
         cartItemList = CartItemStore.INSTANCE.getCartItemList();
