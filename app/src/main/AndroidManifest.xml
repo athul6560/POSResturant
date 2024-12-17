@@ -32,7 +32,8 @@
         </provider>
         <activity
             android:name=".ui.EditMenu.EditMenuActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape"/>
         <activity
             android:name=".ui.printModule.PrintActivity"
             android:exported="false"
