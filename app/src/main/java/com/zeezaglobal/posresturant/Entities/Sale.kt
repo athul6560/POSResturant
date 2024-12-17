@@ -20,4 +20,9 @@ data class Sale(
     @TypeConverters(CartItemListConverter::class) // Use CartItemListConverter
     val items: List<CartItem>,
 
+    // Optional fields for customer information
+    val customerName: String? = null,
+    val customerEmail: String? = null,
+    val customerPhone: String? = null
+
 )

@@ -15,13 +15,13 @@ class AnalyticsViewModel (private val saleRepository: SaleRepository) : ViewMode
     private val _sales = MutableLiveData<List<Sale>>()
     val sales: LiveData<List<Sale>> get() = _sales
 
-    fun fetchSalesForDate(date: Date) {
+    fun fetchSalesForDate(startTime:String, endTime:String) {
         viewModelScope.launch {
             try {
-                val salesList = saleRepository.getSalesByDateRange(date)
+                val salesList = saleRepository.getSalesByDateRange(startTime, endTime)
                 _sales.postValue(salesList)
             } catch (e: Exception) {
-                // Handle error (e.g., log it, show error state in UI)
+
                 _sales.postValue(emptyList())
             }
         }

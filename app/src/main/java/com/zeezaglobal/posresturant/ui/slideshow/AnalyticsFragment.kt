@@ -24,12 +24,15 @@ import com.zeezaglobal.posresturant.Entities.Sale
 import com.zeezaglobal.posresturant.R
 import com.zeezaglobal.posresturant.Repository.SaleRepository
 import com.zeezaglobal.posresturant.Utils.DateTimeUtils
+import com.zeezaglobal.posresturant.Utils.DateTimeUtils.getStartAndEndOfDay
+import com.zeezaglobal.posresturant.Utils.DateTimeUtils.getStartAndEndOfRangeOfDates
 import com.zeezaglobal.posresturant.databinding.FragmentAnalyticsBinding
 import com.zeezaglobal.posresturant.ui.customVies.SalesProgressView
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -55,8 +58,8 @@ class AnalyticsFragment : Fragment() {
     private lateinit var _saleList: List<Sale>
     private lateinit var salesView: SalesProgressView
     private lateinit var unit: TextView
-    private  val RANGE_SELECTION=0
-    private  val DAY_SELECTION=1
+    private val RANGE_SELECTION = 0
+    private val DAY_SELECTION = 1
 
 
     override fun onCreateView(
@@ -103,8 +106,12 @@ class AnalyticsFragment : Fragment() {
             totalSalesText.setText(calculateTotalSales(saleList).toString())
             saleAmount.setText("₹" + calculateTotalSalesAmount(saleList))
         })
-        val currentDate = Date()
-        analyticsViewModel.fetchSalesForDate(currentDate)
+        val (startOfDay, endOfDay) = DateTimeUtils.getStartAndEndOfDay(Date())
+
+        val startTime =
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay)
+        val endTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(endOfDay)
+        analyticsViewModel.fetchSalesForDate(startTime, endTime)
         ExportButton.setOnClickListener {
             exportSalesToCSV(_saleList)
         }
@@ -151,11 +158,15 @@ class AnalyticsFragment : Fragment() {
             .build()
 
         singleDatePicker.addOnPositiveButtonClickListener { selection ->
-            val selectedDate =
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selection))
-            // Use selectedDate as needed
-            Toast.makeText(requireContext(), "Selected Date: $selectedDate", Toast.LENGTH_SHORT)
-                .show()
+            val selectedDate = Date(selection) // Convert timestamp to Date
+            val (startOfDay, endOfDay) = getStartAndEndOfDay(selectedDate) // Pass the Date object
+
+            val startTime =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay)
+            val endTime =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(endOfDay)
+            dateSelectionDate.text = SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(selectedDate)
+            analyticsViewModel.fetchSalesForDate(startTime, endTime)
         }
 
         // To select a date range
@@ -164,16 +175,24 @@ class AnalyticsFragment : Fragment() {
             .build()
 
         dateRangePicker.addOnPositiveButtonClickListener { selection ->
-            val startDate =
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selection.first))
-            val endDate =
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(selection.second))
-            // Use startDate and endDate as needed
-            Toast.makeText(
-                requireContext(),
-                "Selected Range: $startDate to $endDate",
-                Toast.LENGTH_SHORT
-            ).show()
+            val startDate = Date(selection.first ?: 0L) // Convert timestamp to Date
+            val endDate = Date(selection.second ?: 0L) // Convert timestamp to Date
+
+// Use startDate and endDate as needed
+            val (startOfDay, endOfDay) = getStartAndEndOfRangeOfDates(
+                startDate,
+                endDate
+            ) // Pass the Date objects
+            dateSelectionDate.text = SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(startDate)+"-"+
+                    SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(endDate)
+// Format the start and end times
+            val startTime =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay)
+            val endTime =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(endOfDay)
+
+// Fetch sales data for the range
+            analyticsViewModel.fetchSalesForDate(startTime, endTime)
         }
         if (mode == 1)
         // Show the date picker dialog
@@ -189,13 +208,12 @@ class AnalyticsFragment : Fragment() {
             Toast.makeText(requireContext(), "No sales data to export", Toast.LENGTH_SHORT).show()
             return
         }
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val currentDate = dateFormat.format(Date())
+
         // Save file in internal storage
         val directory = File(requireContext().filesDir, "exports")
         if (!directory.exists()) directory.mkdirs()
 
-        val csvFile = File(directory, "SalesData_$currentDate.csv")
+        val csvFile = File(directory, "SalesData_${dateSelectionDate.text}.csv")
         try {
             FileWriter(csvFile).use { writer ->
                 // CSV Header
@@ -203,9 +221,8 @@ class AnalyticsFragment : Fragment() {
 
                 saleList.forEach { sale ->
                     // Serialize items into a single string
-                    val itemsString = sale.items.joinToString(separator = ";") { item ->
-                        "(${item.item},${item.quantity})"
-                    }
+                    val itemsString = sale.items.joinToString(separator = ",") { "${it.item.itemName}-${it.quantity}" }
+
 
                     // Write sale data
                     writer.append(
