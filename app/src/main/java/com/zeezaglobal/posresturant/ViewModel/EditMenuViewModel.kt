@@ -40,4 +40,11 @@ class EditMenuViewModel(private val groupRepository: GroupRepository,
             loadItemsByGroup(item.groupId)
         }
     }
+    fun deleteItem(item: Item) {
+        viewModelScope.launch {
+            itemRepository.deleteItem(item.itemId)
+            // Optionally, reload items after the deletion
+            loadItemsByGroup(item.groupId)
+        }
+    }
 }

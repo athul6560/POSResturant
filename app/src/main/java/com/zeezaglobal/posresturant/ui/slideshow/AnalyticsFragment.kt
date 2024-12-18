@@ -20,8 +20,10 @@ import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.zeezaglobal.posresturant.Adapters.SalesAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
+import com.zeezaglobal.posresturant.Entities.Group
 import com.zeezaglobal.posresturant.Entities.Sale
 import com.zeezaglobal.posresturant.R
+import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.SaleRepository
 import com.zeezaglobal.posresturant.Utils.DateTimeUtils
 import com.zeezaglobal.posresturant.Utils.DateTimeUtils.getStartAndEndOfDay
@@ -58,6 +60,7 @@ class AnalyticsFragment : Fragment() {
     private lateinit var _saleList: List<Sale>
     private lateinit var salesView: SalesProgressView
     private lateinit var unit: TextView
+    private lateinit var _groupList: List<Group>
     private val RANGE_SELECTION = 0
     private val DAY_SELECTION = 1
 
@@ -69,7 +72,8 @@ class AnalyticsFragment : Fragment() {
     ): View {
         val application = requireActivity().application as POSApp
         val saleRepository = SaleRepository((application).database.saleDao())
-        val saleViewModelFactory = SaleViewModelFactory(saleRepository)
+        val groupRepository = GroupRepository((application).database.groupDao())
+        val saleViewModelFactory = SaleViewModelFactory(saleRepository, groupRepository)
         analyticsViewModel = ViewModelProvider(this, saleViewModelFactory).get(
             AnalyticsViewModel::class.java
         )
@@ -106,14 +110,19 @@ class AnalyticsFragment : Fragment() {
             totalSalesText.setText(calculateTotalSales(saleList).toString())
             saleAmount.setText("₹" + calculateTotalSalesAmount(saleList))
         })
+
+        analyticsViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
+            _groupList = groupList // Store observed groups
+        })
         val (startOfDay, endOfDay) = DateTimeUtils.getStartAndEndOfDay(Date())
 
         val startTime =
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay)
         val endTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(endOfDay)
         analyticsViewModel.fetchSalesForDate(startTime, endTime)
+        analyticsViewModel.fetchAllGroups()
         ExportButton.setOnClickListener {
-            exportSalesToCSV(_saleList)
+            exportSalesToCSV(_saleList,_groupList)
         }
         calender_btn.setOnClickListener {
             //  calenderPopup()
@@ -203,11 +212,12 @@ class AnalyticsFragment : Fragment() {
     }
 
 
-    private fun exportSalesToCSV(saleList: List<Sale>?) {
-        if (saleList.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "No sales data to export", Toast.LENGTH_SHORT).show()
+    private fun exportSalesToCSV(saleList: List<Sale>?, groupList: List<Group>?) {
+        if (saleList.isNullOrEmpty() || groupList.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "No sales or groups data to export", Toast.LENGTH_SHORT).show()
             return
         }
+
 
         // Save file in internal storage
         val directory = File(requireContext().filesDir, "exports")
@@ -217,12 +227,15 @@ class AnalyticsFragment : Fragment() {
         try {
             FileWriter(csvFile).use { writer ->
                 // CSV Header
-                writer.append("ID,Bill Number,Token Number,Total Amount,Date,Payment Method,Item,Quantity\n")
+                writer.append("ID,Bill Number,Token Number,Total Amount,Date,Payment Method,Item Name,Item Price,Group,Quantity\n")
+
 
                 saleList.forEach { sale ->
                     sale.items.forEach { itemDetail ->
+                        val group = groupList.find { it.groupId == itemDetail.item.groupId }
                         // Write sale data for each item
-                        writer.append(
+                        if (group != null) {
+                            writer.append(
                             "${sale.id}," +
                                     "${sale.billNumber}," +
                                     "${sale.tokenNumber}," +
@@ -230,9 +243,11 @@ class AnalyticsFragment : Fragment() {
                                     "${sale.dateTime}," +
                                     "${sale.paymentMethod}," +
                                     "${itemDetail.item.itemName}," +
+                                    "${itemDetail.item.itemPrice}," +
+                                    "${group.groupName}," +
                                     "${itemDetail.quantity}\n"
                         )
-                    }
+                    }}
                 }
                 writer.flush()
             }

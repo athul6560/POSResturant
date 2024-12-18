@@ -227,7 +227,7 @@ class HomeFragment : Fragment() {
         subtotalTextView.text = "₹0.00"
         taxTextView.text = "₹0.00"
         totalTextView.text = "₹0.00"
-        Toast.makeText(requireContext(), "Cart cleared", Toast.LENGTH_SHORT).show()
+
     }
 
 
@@ -248,7 +248,7 @@ class HomeFragment : Fragment() {
     }
 
     override fun onResume() {
-
+clearCartFn()
         super.onResume()
         addNewViewModel.loadGroups() // Fetch the latest groups from the database
         addNewViewModel.loadItems()

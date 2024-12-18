@@ -35,16 +35,20 @@ class EditMenuActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityEditMenuBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val application =this.application as POSApp
+        val application = this.application as POSApp
         val itemRepository = ItemRepository((application).database.itemDao())
         val groupRepository = GroupRepository((application).database.groupDao())
-        viewModel = ViewModelProvider(this, EditMenuViewModelFactory(groupRepository, itemRepository))[EditMenuViewModel::class.java]
+        viewModel = ViewModelProvider(
+            this,
+            EditMenuViewModelFactory(groupRepository, itemRepository)
+        )[EditMenuViewModel::class.java]
         val spinner: Spinner = findViewById(R.id.category_spinner)
         groupAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, mutableListOf())
         groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = groupAdapter
         viewModel.groups.observe(this) { groupList ->
-            val groupNames = groupList.map { it.groupName } // Assuming Group has a 'groupName' field
+            val groupNames =
+                groupList.map { it.groupName } // Assuming Group has a 'groupName' field
             groupAdapter.clear()
             groupAdapter.addAll(groupNames)
             groupAdapter.notifyDataSetChanged()
@@ -60,9 +64,22 @@ class EditMenuActivity : AppCompatActivity() {
                 }
             }
         }
-
+        binding.deleteBtn.setOnClickListener {
+            if (::item.isInitialized) {
+                viewModel.deleteItem(item)
+                Toast.makeText(this, "Item Deleted Successfully", Toast.LENGTH_SHORT).show()
+                finish() // Close the activity after deletion
+            } else {
+                Toast.makeText(this, "No item to delete", Toast.LENGTH_SHORT).show()
+            }
+        }
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
                 val selectedCategory = parent.getItemAtPosition(position).toString()
                 // Handle the selected category here
             }
@@ -94,7 +111,8 @@ class EditMenuActivity : AppCompatActivity() {
 
     private fun updateItemData() {
         val selectedGroupName = binding.categorySpinner.selectedItem.toString()
-        val selectedGroupId = viewModel.groups.value?.find { it.groupName == selectedGroupName }?.groupId
+        val selectedGroupId =
+            viewModel.groups.value?.find { it.groupName == selectedGroupName }?.groupId
 
         if (selectedGroupId != null) {
             val updatedItem = item.copy(
