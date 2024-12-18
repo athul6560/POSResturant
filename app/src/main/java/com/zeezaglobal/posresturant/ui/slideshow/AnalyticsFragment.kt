@@ -217,23 +217,22 @@ class AnalyticsFragment : Fragment() {
         try {
             FileWriter(csvFile).use { writer ->
                 // CSV Header
-                writer.append("ID,Bill Number,Token Number,Total Amount,Date,Payment Method,Items\n")
+                writer.append("ID,Bill Number,Token Number,Total Amount,Date,Payment Method,Item,Quantity\n")
 
                 saleList.forEach { sale ->
-                    // Serialize items into a single string
-                    val itemsString = sale.items.joinToString(separator = ",") { "${it.item.itemName}-${it.quantity}" }
-
-
-                    // Write sale data
-                    writer.append(
-                        "${sale.id}," +
-                                "${sale.billNumber}," +
-                                "${sale.tokenNumber}," +
-                                "${sale.totalAmount}," +
-                                "${sale.dateTime}," +
-                                "${sale.paymentMethod}," +
-                                "\"$itemsString\"\n" // Quote the items string to handle any special characters
-                    )
+                    sale.items.forEach { itemDetail ->
+                        // Write sale data for each item
+                        writer.append(
+                            "${sale.id}," +
+                                    "${sale.billNumber}," +
+                                    "${sale.tokenNumber}," +
+                                    "${sale.totalAmount}," +
+                                    "${sale.dateTime}," +
+                                    "${sale.paymentMethod}," +
+                                    "${itemDetail.item.itemName}," +
+                                    "${itemDetail.quantity}\n"
+                        )
+                    }
                 }
                 writer.flush()
             }

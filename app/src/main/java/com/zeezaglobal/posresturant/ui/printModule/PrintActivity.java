@@ -417,7 +417,7 @@ public class PrintActivity extends AppCompatActivity {
                 .append("[C]================================\n")
                 .append("[L]\n")
                 .append("[L]Date & Time: ").append(format.format(new Date())).append("\n")
-                .append("[L]Token: ").append(tokenNumber).append("\n")
+                .append("[L]Token: ").append(tokenNumber).append(customerName).append("\n")
                 .append("[L]Bill: ").append(billNumber).append("\n")
                 .append("[C]================================\n")
                 .append("[L]\n");
@@ -457,6 +457,7 @@ public class PrintActivity extends AppCompatActivity {
 
         // Footer section with thank you note
         receiptContent.append("[C]Thank you for shopping with us!\n");
+        receiptContent.append("[C]Powered by www.zeezaglobal.com");
 
         // Adding Token number section
         receiptContent.append("\n\n")
