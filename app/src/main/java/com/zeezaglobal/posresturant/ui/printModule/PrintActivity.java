@@ -1,6 +1,8 @@
 package com.zeezaglobal.posresturant.ui.printModule;
 
 
+import static java.security.AccessController.getContext;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -14,9 +16,13 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -37,6 +43,8 @@ import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 
 import com.zeezaglobal.posresturant.Adapters.CartItemAdapter;
 import com.zeezaglobal.posresturant.Application.POSApp;
+import com.zeezaglobal.posresturant.Dialogues.SuccessDialogFragment;
+
 import com.zeezaglobal.posresturant.Entities.CartItem;
 import com.zeezaglobal.posresturant.Entities.Sale;
 import com.zeezaglobal.posresturant.Printer.async.AsyncBluetoothEscPosPrint;
@@ -64,6 +72,10 @@ public class PrintActivity extends AppCompatActivity {
     private TextView TockenNumber;
     private TextView BillNumber;
     private TextView DateandTime;
+    private EditText customerName;
+    private Button SaveCheck;
+    private EditText customerEmail;
+    private EditText customerPhone;
     private List<CartItem> cartItemList;
     private Integer tokenNumber;
     private Long billNumber;
@@ -79,32 +91,62 @@ public class PrintActivity extends AppCompatActivity {
         button = (Button) findViewById(R.id.button_bluetooth);
         button.setOnClickListener(view -> printBluetooth());
         button = (Button) this.findViewById(R.id.button_usb);
+       Button finishBtn = (Button) this.findViewById(R.id.finish_btn);
         button.setOnClickListener(view -> printUsb());
         button = (Button) this.findViewById(R.id.button_tcp);
         TockenNumber = (TextView) this.findViewById(R.id.tocken_number);
+        SaveCheck = (Button) this.findViewById(R.id.save_check);
         paymentMethod = (TextView) this.findViewById(R.id.payment_method);
         BillNumber = (TextView) this.findViewById(R.id.textView23);
         DateandTime = (TextView) this.findViewById(R.id.textView24);
+
+        customerName = (EditText) this.findViewById(R.id.customer_name);
+       customerEmail= (EditText) this.findViewById(R.id.customer_email);
+       customerPhone= (EditText) this.findViewById(R.id.customer_phone);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+       finishBtn.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               finish();
+           }
+       });
+       SaveCheck.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               double subtotal = cartItemList.stream()
+                       .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
+                       .sum();
+               addToSales(billNumber,
+                       tokenNumber,
+                       subtotal,
+                       format.format(new Date()),
+                       CartItemStore.INSTANCE.getPaymentMethod(),
+                       customerName.getText().toString(),
+                       customerEmail.getText().toString(),
+                       customerPhone.getText().toString()
+               );
+           }
+       });
         button.setOnClickListener(view -> printTcp());
         // Access the cartItemList from CartItemStore
-         cartItemList = CartItemStore.INSTANCE.getCartItemList();
+        cartItemList = CartItemStore.INSTANCE.getCartItemList();
         // Retrieve the cart item list
         // Initialize TextViews by their IDs
         subtotalTextView = findViewById(R.id.textView8);
         taxTextView = findViewById(R.id.textView9);
         totalTextView = findViewById(R.id.textView10);
-paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
+        paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
         // Assume cartItemList is populated with data from the cart
         calculateTotals();
-         saleRepository = new SaleRepository(((POSApp) getApplication()).getDatabase().saleDao());
+        saleRepository = new SaleRepository(((POSApp) getApplication()).getDatabase().saleDao());
 
         BillandTocken generator = new BillandTocken(this);
         tokenNumber = generator.generateToken();
-        billNumber=generator.generateUniqueBillNumber();
-        TockenNumber.setText("Token : "+tokenNumber);
-        BillNumber.setText("Bill Number : "+billNumber);
+        billNumber = generator.generateUniqueBillNumber();
+        TockenNumber.setText("Token : " + tokenNumber);
+        BillNumber.setText("Bill Number : " + billNumber);
 
-        DateandTime.setText("Date & Time : "+getCurrentDateAndTime());
+        DateandTime.setText("Date & Time : " + getCurrentDateAndTime());
         // Initialize RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerview_chckout);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -346,15 +388,32 @@ paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
         }
     }
 
-    private void addToSales(Long BillNumber, int TockenNumber, Double TotalAmount, String DateTime) {
+    private void addToSales(Long BillNumber,
+                            int TockenNumber,
+                            Double TotalAmount,
+                            String DateTime,
+                            String paymentMethod,
+                            String customerName,
+                            String customerEmail,
+                            String customerPhone
+                            ) {
         Sale sale = new Sale(
                 0L,          // ID (auto-generated by Room, can pass 0 here)
                 BillNumber,      // Bill Number
                 TockenNumber,        // Token Number
                 TotalAmount,       // Total Amount
-                DateTime // DateTime
+                DateTime,
+                paymentMethod,
+                cartItemList,
+                customerName,
+                customerEmail,
+                customerPhone
+
         );
+
         saleRepository.insertSale(sale);
+        SuccessDialogFragment dialog = SuccessDialogFragment.newInstance("Bill Saved Successfully!");
+        dialog.show(getSupportFragmentManager(), "success_dialog");
     }
 
     /*==============================================================================================
@@ -371,12 +430,8 @@ paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
 
         // Generate a random token number and bill number
         StringBuilder receiptContent = new StringBuilder();
-        receiptContent.append("[C]<img>")
-                .append(PrinterTextParserImg.bitmapToHexadecimalString(
-                        printer,
-                        this.getApplicationContext().getResources().getDrawableForDensity(R.drawable.logo, DisplayMetrics.DENSITY_MEDIUM)
-                ))
-                .append("</img>\n")
+        receiptContent
+
                 .append("[L]\n")
                 .append("[C]<font size='big'>BEAN BARREL</font>\n")
 
@@ -385,7 +440,7 @@ paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
                 .append("[C]================================\n")
                 .append("[L]\n")
                 .append("[L]Date & Time: ").append(format.format(new Date())).append("\n")
-                .append("[L]Token: ").append(tokenNumber).append("\n")
+                .append("[L]Token: ").append(tokenNumber).append(customerName.getText()).append("\n")
                 .append("[L]Bill: ").append(billNumber).append("\n")
                 .append("[C]================================\n")
                 .append("[L]\n");
@@ -406,9 +461,17 @@ paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
 
         // Calculate subtotal only
         double subtotal = cartItemList.stream()
-                .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
-                .sum();
-        addToSales(billNumber,tokenNumber,subtotal,format.format(new Date()));
+               .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
+               .sum();
+//        addToSales(billNumber,
+//                tokenNumber,
+//                subtotal,
+//                format.format(new Date()),
+//                CartItemStore.INSTANCE.getPaymentMethod(),
+//                customerName.getText().toString(),
+//                customerEmail.getText().toString(),
+//                customerPhone.getText().toString()
+//        );
         // Totals section without tax
         receiptContent.append("[R]TOTAL PRICE :[R]").append(String.format("%.2f₹", subtotal)).append("\n")
                 .append("[L]\n")
@@ -417,10 +480,11 @@ paymentMethod.setText(CartItemStore.INSTANCE.getPaymentMethod());
 
         // Footer section with thank you note
         receiptContent.append("[C]Thank you for shopping with us!\n");
+        receiptContent.append("[C]Powered by www.zeezaglobal.com");
 
         // Adding Token number section
         receiptContent.append("\n\n")
-                .append("[C]<font size='big'>CUSTOMER TOKEN RECEIPT</font>\n")
+                .append("[C]<font size='big'>CUSTOMER TOKEN</font>\n")
                 .append("[C]================================\n")
                 .append("[C]<font size='big'>Token Number: ").append(tokenNumber).append("</font>\n")
                 .append("[C]================================\n");

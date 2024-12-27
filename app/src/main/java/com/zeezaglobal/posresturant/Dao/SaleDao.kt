@@ -14,4 +14,7 @@ interface SaleDao {
 
     @Query("SELECT * FROM sales")
     suspend fun getAllSales(): List<Sale>
+
+    @Query("SELECT * FROM sales WHERE dateTime >= :startTime AND dateTime < :endTime")
+    suspend fun getSalesByDateRange(startTime: String, endTime: String): List<Sale>
 }
