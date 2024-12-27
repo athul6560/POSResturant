@@ -1,6 +1,8 @@
 package com.zeezaglobal.posresturant.ui.printModule;
 
 
+import static java.security.AccessController.getContext;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -40,6 +43,8 @@ import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 
 import com.zeezaglobal.posresturant.Adapters.CartItemAdapter;
 import com.zeezaglobal.posresturant.Application.POSApp;
+import com.zeezaglobal.posresturant.Dialogues.SuccessDialogFragment;
+
 import com.zeezaglobal.posresturant.Entities.CartItem;
 import com.zeezaglobal.posresturant.Entities.Sale;
 import com.zeezaglobal.posresturant.Printer.async.AsyncBluetoothEscPosPrint;
@@ -68,6 +73,7 @@ public class PrintActivity extends AppCompatActivity {
     private TextView BillNumber;
     private TextView DateandTime;
     private EditText customerName;
+    private Button SaveCheck;
     private EditText customerEmail;
     private EditText customerPhone;
     private List<CartItem> cartItemList;
@@ -89,6 +95,7 @@ public class PrintActivity extends AppCompatActivity {
         button.setOnClickListener(view -> printUsb());
         button = (Button) this.findViewById(R.id.button_tcp);
         TockenNumber = (TextView) this.findViewById(R.id.tocken_number);
+        SaveCheck = (Button) this.findViewById(R.id.save_check);
         paymentMethod = (TextView) this.findViewById(R.id.payment_method);
         BillNumber = (TextView) this.findViewById(R.id.textView23);
         DateandTime = (TextView) this.findViewById(R.id.textView24);
@@ -96,11 +103,28 @@ public class PrintActivity extends AppCompatActivity {
         customerName = (EditText) this.findViewById(R.id.customer_name);
        customerEmail= (EditText) this.findViewById(R.id.customer_email);
        customerPhone= (EditText) this.findViewById(R.id.customer_phone);
-
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
        finishBtn.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View view) {
                finish();
+           }
+       });
+       SaveCheck.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               double subtotal = cartItemList.stream()
+                       .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
+                       .sum();
+               addToSales(billNumber,
+                       tokenNumber,
+                       subtotal,
+                       format.format(new Date()),
+                       CartItemStore.INSTANCE.getPaymentMethod(),
+                       customerName.getText().toString(),
+                       customerEmail.getText().toString(),
+                       customerPhone.getText().toString()
+               );
            }
        });
         button.setOnClickListener(view -> printTcp());
@@ -386,7 +410,10 @@ public class PrintActivity extends AppCompatActivity {
                 customerPhone
 
         );
+
         saleRepository.insertSale(sale);
+        SuccessDialogFragment dialog = SuccessDialogFragment.newInstance("Bill Saved Successfully!");
+        dialog.show(getSupportFragmentManager(), "success_dialog");
     }
 
     /*==============================================================================================
@@ -403,12 +430,8 @@ public class PrintActivity extends AppCompatActivity {
 
         // Generate a random token number and bill number
         StringBuilder receiptContent = new StringBuilder();
-        receiptContent.append("[C]<img>")
-                .append(PrinterTextParserImg.bitmapToHexadecimalString(
-                        printer,
-                        this.getApplicationContext().getResources().getDrawableForDensity(R.drawable.logo, DisplayMetrics.DENSITY_MEDIUM)
-                ))
-                .append("</img>\n")
+        receiptContent
+
                 .append("[L]\n")
                 .append("[C]<font size='big'>BEAN BARREL</font>\n")
 
@@ -417,7 +440,7 @@ public class PrintActivity extends AppCompatActivity {
                 .append("[C]================================\n")
                 .append("[L]\n")
                 .append("[L]Date & Time: ").append(format.format(new Date())).append("\n")
-                .append("[L]Token: ").append(tokenNumber).append(customerName).append("\n")
+                .append("[L]Token: ").append(tokenNumber).append(customerName.getText()).append("\n")
                 .append("[L]Bill: ").append(billNumber).append("\n")
                 .append("[C]================================\n")
                 .append("[L]\n");
@@ -438,17 +461,17 @@ public class PrintActivity extends AppCompatActivity {
 
         // Calculate subtotal only
         double subtotal = cartItemList.stream()
-                .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
-                .sum();
-        addToSales(billNumber,
-                tokenNumber,
-                subtotal,
-                format.format(new Date()),
-                CartItemStore.INSTANCE.getPaymentMethod(),
-                customerName.getText().toString(),
-                customerEmail.getText().toString(),
-                customerPhone.getText().toString()
-        );
+               .mapToDouble(cartItem -> cartItem.getItem().getItemPrice() * cartItem.getQuantity())
+               .sum();
+//        addToSales(billNumber,
+//                tokenNumber,
+//                subtotal,
+//                format.format(new Date()),
+//                CartItemStore.INSTANCE.getPaymentMethod(),
+//                customerName.getText().toString(),
+//                customerEmail.getText().toString(),
+//                customerPhone.getText().toString()
+//        );
         // Totals section without tax
         receiptContent.append("[R]TOTAL PRICE :[R]").append(String.format("%.2f₹", subtotal)).append("\n")
                 .append("[L]\n")
@@ -461,7 +484,7 @@ public class PrintActivity extends AppCompatActivity {
 
         // Adding Token number section
         receiptContent.append("\n\n")
-                .append("[C]<font size='big'>CUSTOMER TOKEN RECEIPT</font>\n")
+                .append("[C]<font size='big'>CUSTOMER TOKEN</font>\n")
                 .append("[C]================================\n")
                 .append("[C]<font size='big'>Token Number: ").append(tokenNumber).append("</font>\n")
                 .append("[C]================================\n");

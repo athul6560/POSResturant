@@ -227,8 +227,7 @@ class AnalyticsFragment : Fragment() {
         try {
             FileWriter(csvFile).use { writer ->
                 // CSV Header
-                writer.append("ID,Bill Number,Token Number,Total Amount,Date,Payment Method,Item Name,Item Price,Group,Quantity\n")
-
+                writer.append("ID,Bill Number,Token Number,Total Amount,Customer Name,Customer Phone,Customer Email,Date,Payment Method,Item Name,Item Price,Group,Quantity\n")
 
                 saleList.forEach { sale ->
                     sale.items.forEach { itemDetail ->
@@ -240,6 +239,9 @@ class AnalyticsFragment : Fragment() {
                                     "${sale.billNumber}," +
                                     "${sale.tokenNumber}," +
                                     "${sale.totalAmount}," +
+                                    "${sale.customerName}," +
+                                    "${sale.customerPhone}," +
+                                    "${sale.customerEmail}," +
                                     "${sale.dateTime}," +
                                     "${sale.paymentMethod}," +
                                     "${itemDetail.item.itemName}," +

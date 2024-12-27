@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-@Entity(tableName = "sales")
+@Entity(tableName = "sales",indices = [androidx.room.Index(value = ["billNumber"], unique = true)])
 data class Sale(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0, // Unique ID for each sale

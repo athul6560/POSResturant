@@ -17,7 +17,12 @@ class SaleRepository(private val saleDao: SaleDao) {
 
     fun insertSale(item: Sale) {
         executor.execute {
-            saleDao.insertSale(item)
+            try {
+                saleDao.insertSale(item)
+            } catch (e: Exception) {
+                Log.e("SaleRepository", "Error inserting sale: ${e.message}")
+
+            }
         }
     }
 
