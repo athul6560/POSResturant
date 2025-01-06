@@ -89,7 +89,8 @@ class HomeFragment : Fragment() {
 
 
         horizondaladapter = HorizontalAdapter(emptyList()) { clickedItem ->
-            val groupId = clickedItem.groupId // Replace 'id' with the correct property of your category
+            val groupId =
+                clickedItem.groupId // Replace 'id' with the correct property of your category
 
             // Filter the grid items based on the selected category
             adapter.filterByGroup(groupId)
@@ -106,11 +107,12 @@ class HomeFragment : Fragment() {
                 return@setOnClickListener
             }
             val paymentDialog = PaymentMethodDialog(requireContext())
-            paymentDialog.setPaymentMethodListener(object : PaymentMethodDialog.PaymentMethodListener {
+            paymentDialog.setPaymentMethodListener(object :
+                PaymentMethodDialog.PaymentMethodListener {
                 override fun onPaymentMethodSelected(method: String) {
 
                     CartItemStore.cartItemList = listOfCartItems
-                    CartItemStore.paymentMethod=method
+                    CartItemStore.paymentMethod = method
                     startActivity(Intent(requireContext(), PrintActivity::class.java))
                 }
             })
@@ -248,8 +250,12 @@ class HomeFragment : Fragment() {
     }
 
     override fun onResume() {
-clearCartFn()
+        if (CartItemStore.cartItemList != null) {
+            clearCartFn()
+            CartItemStore.cartItemList =null
+        }
         super.onResume()
+
         addNewViewModel.loadGroups() // Fetch the latest groups from the database
         addNewViewModel.loadItems()
 
