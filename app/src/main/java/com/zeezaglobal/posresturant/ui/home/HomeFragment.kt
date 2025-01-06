@@ -2,7 +2,11 @@ package com.zeezaglobal.posresturant.ui.home
 
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -29,6 +33,7 @@ import com.zeezaglobal.posresturant.Application.POSApp
 import com.zeezaglobal.posresturant.Dialogues.PaymentMethodDialog
 import com.zeezaglobal.posresturant.Entities.CartItem
 import com.zeezaglobal.posresturant.Entities.CartItemStore
+import com.zeezaglobal.posresturant.R
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
@@ -141,7 +146,7 @@ class HomeFragment : Fragment() {
                 // Item is not in the cart, add a new CartItem with quantity 1
                 listOfCartItems.add(CartItem(selectedItem, 1))
             }
-
+            playSoundAndVibrate()
             updateCart(listOfCartItems)
             // sharedPreferencesHelper.saveCartItemToSharedPreferences(selectedItem)
             //   loadCartFromSharedPreferences()
@@ -183,6 +188,25 @@ class HomeFragment : Fragment() {
         }
 
         return root
+    }
+
+    private fun playSoundAndVibrate() {
+        // Play sound
+        val mediaPlayer = MediaPlayer.create(context, R.raw.ding)
+        mediaPlayer.start()
+        mediaPlayer.setOnCompletionListener {
+            mediaPlayer.release()
+        }
+
+        // Vibrate
+        val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (vibrator.hasVibrator()) { // Check if the device has a vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                vibrator.vibrate(200) // Vibrate for 200 milliseconds
+            }
+        }
     }
 
     private fun subtractItemFromCart(cartItem: CartItem) {
