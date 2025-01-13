@@ -55,7 +55,7 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
         val application = requireActivity().application as POSApp
         val groupRepository = GroupRepository((application).database.groupDao())
         val itemRepository = ItemRepository((application).database.itemDao())
-//test
+//test bcv
         val posViewModelFactory = POSViewModelFactory(groupRepository,itemRepository)
         addNewViewModel = ViewModelProvider(this, posViewModelFactory).get(
             AddNewViewModel::class.java
