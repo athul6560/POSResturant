@@ -13,7 +13,7 @@ data class Sale(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0, // Unique ID for each sale
     val billNumber: Long,
-    val tokenNumber: Long,
+    val tokenNumber: Int,
     val totalAmount: Double,
     val dateTime: String,
     val paymentMethod: String,

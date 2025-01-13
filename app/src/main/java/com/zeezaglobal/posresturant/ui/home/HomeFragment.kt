@@ -40,7 +40,7 @@ import com.zeezaglobal.posresturant.Utils.SharedPreferencesHelper
 import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
 import com.zeezaglobal.posresturant.databinding.FragmentHomeBinding
-import com.zeezaglobal.posresturant.ui.printModule.PrintActivity
+import com.zeezaglobal.posresturant.ui.printModule.CheckoutPageActivity
 
 class HomeFragment : Fragment() {
     private lateinit var addNewViewModel: AddNewViewModel
@@ -118,7 +118,7 @@ class HomeFragment : Fragment() {
 
                     CartItemStore.cartItemList = listOfCartItems
                     CartItemStore.paymentMethod = method
-                    startActivity(Intent(requireContext(), PrintActivity::class.java))
+                    startActivity(Intent(requireContext(), CheckoutPageActivity::class.java))
                 }
             })
             paymentDialog.show()

@@ -7,7 +7,7 @@
     tools:context=".MainActivity"
     android:gravity="center"
     android:background="@color/light_grey"
-   >
+    >
 
 
 
