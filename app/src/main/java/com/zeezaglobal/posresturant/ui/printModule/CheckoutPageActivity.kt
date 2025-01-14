@@ -9,6 +9,10 @@ import android.widget.Toast
 import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.pm.PackageManager
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -36,7 +40,7 @@ class CheckoutPageActivity : AppCompatActivity() {
     private lateinit var subtotalTextView: TextView
     private lateinit var taxTextView: TextView
     private lateinit var totalTextView: TextView
-    private lateinit var paymentMethodTextView: TextView
+
     private lateinit var tokenNumber: TextView
     private lateinit var billNumber: TextView
     private lateinit var dateAndTime: TextView
@@ -50,6 +54,7 @@ class CheckoutPageActivity : AppCompatActivity() {
     private lateinit var cartItemList: List<CartItem>  // You need to initialize this properly
     private var token: Int? = null
     private var billNo: Long? = null
+    lateinit var paymentMethodSpinner: Spinner
     private lateinit var saleRepository: SaleRepository
     private val taxRate = 0.0
     private lateinit var printerHelper: BTPrinterLogic
@@ -71,7 +76,7 @@ class CheckoutPageActivity : AppCompatActivity() {
         subtotalTextView = findViewById(R.id.textView8)
         taxTextView = findViewById(R.id.textView9)
         totalTextView = findViewById(R.id.textView10)
-        paymentMethodTextView = findViewById(R.id.payment_method)
+        paymentMethodSpinner = findViewById(R.id.payment_method_spinner)
         tokenNumber = findViewById(R.id.tocken_number)
         billNumber = findViewById(R.id.textView23)
         dateAndTime = findViewById(R.id.textView24)
@@ -91,8 +96,33 @@ class CheckoutPageActivity : AppCompatActivity() {
         cartItemList = CartItemStore.cartItemList!! // Replace with actual cart item list source
 
         // Set the payment method text
-        paymentMethodTextView.text = CartItemStore.paymentMethod
+        val paymentMethods = resources.getStringArray(R.array.payment_methods)
 
+// Set up the spinner adapter
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        paymentMethodSpinner.adapter = adapter
+
+// Set the initial selection based on CartItemStore.paymentMethod
+        val initialPosition = paymentMethods.indexOf(CartItemStore.paymentMethod)
+        if (initialPosition != -1) {
+            paymentMethodSpinner.setSelection(initialPosition)
+        }
+        paymentMethodSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
+                val selectedMethod = parent.getItemAtPosition(position).toString()
+                CartItemStore.paymentMethod=selectedMethod
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // Handle case when nothing is selected, if needed
+            }
+        }
         // Calculate and display totals
         calculateTotals()
 

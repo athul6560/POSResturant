@@ -308,7 +308,7 @@ class AnalyticsFragment : Fragment() {
             when (sale.paymentMethod) {
                 "Cash" -> cashSales += sale.totalAmount // Assuming 'amount' is the sale amount
                 "UPI" -> upiSales += sale.totalAmount
-                "Debit/Credit Card" -> creditCardSales += sale.totalAmount
+                "Card" -> creditCardSales += sale.totalAmount
                 else -> {} // Handle any other payment types if necessary
             }
         }

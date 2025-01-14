@@ -21,4 +21,10 @@
     <string name="addnewtem">Add New Item</string>
     <string name="add_new_item">Add New Item</string>
     <string name="categorised">Categorised</string>
+    <string-array name="payment_methods">
+        <item>Cash</item>
+        <item>Card</item>
+        <item>UPI</item>
+
+    </string-array>
 </resources>
