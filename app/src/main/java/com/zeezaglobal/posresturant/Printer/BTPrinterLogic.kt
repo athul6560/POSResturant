@@ -1,6 +1,7 @@
 package com.zeezaglobal.posresturant.Printer
 
 import Receipt
+import Token
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
@@ -103,6 +104,21 @@ class BTPrinterLogic(private val context: Context) {
         try {
             val receiptGenerator = Receipt(saleItem)
             val receiptStream = receiptGenerator.generateReceiptStream()
+
+            // Write receipt content to the printer
+            outputStream?.write(receiptStream.toByteArray())
+            outputStream?.flush()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "Failed to print receipt: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+    fun printToken(saleItem: Sale) {
+        if (outputStream == null) throw Exception("Output stream is null")
+
+        try {
+            val receiptGenerator = Token(saleItem)
+            val receiptStream = receiptGenerator.generateTokenStream()
 
             // Write receipt content to the printer
             outputStream?.write(receiptStream.toByteArray())

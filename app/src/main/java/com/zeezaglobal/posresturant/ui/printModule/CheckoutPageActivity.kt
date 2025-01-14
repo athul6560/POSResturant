@@ -43,6 +43,7 @@ class CheckoutPageActivity : AppCompatActivity() {
     private lateinit var customerName: EditText
     private lateinit var saveCheck: Button
     private lateinit var finishBtn: Button
+    private lateinit var tokenBtn: Button
     private lateinit var printBtn: Button
     private lateinit var customerEmail: EditText
     private lateinit var customerPhone: EditText
@@ -66,6 +67,7 @@ class CheckoutPageActivity : AppCompatActivity() {
         saveCheck = findViewById(R.id.save_check)
         finishBtn = findViewById(R.id.finish_btn)
         printBtn = findViewById(R.id.button_bluetooth)
+        tokenBtn = findViewById(R.id.tocken_btn)
         subtotalTextView = findViewById(R.id.textView8)
         taxTextView = findViewById(R.id.textView9)
         totalTextView = findViewById(R.id.textView10)
@@ -83,7 +85,8 @@ class CheckoutPageActivity : AppCompatActivity() {
 
         // Initialize SaleRepository
         saleRepository = SaleRepository((application as POSApp).database.saleDao())
-printBtn.setEnabled(false);
+        printBtn.setEnabled(false);
+        tokenBtn.setEnabled(false);
         // Assume cartItemList is populated with data from the cart
         cartItemList = CartItemStore.cartItemList!! // Replace with actual cart item list source
 
@@ -101,17 +104,38 @@ printBtn.setEnabled(false);
         tokenNumber.text = "Token : $token"
         billNumber.text = "Bill Number : $billNo"
         dateAndTime.text = "Date & Time : ${getCurrentDateAndTime()}"
+        tokenBtn.setOnClickListener {
+            if (printerHelper.checkBluetoothPermissions()) {
+                if (selectedPrinterDevice != null) {
+                    printToken()
+                } else {
+                    printerHelper.selectPrinter { printerDevice ->
+                        try {
+                            selectedPrinterDevice = printerDevice
+                            printerHelper.connectToPrinter(printerDevice)
 
+                            printToken()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Toast.makeText(this, "Failed to print: ${e.message}", Toast.LENGTH_LONG)
+                                .show()
+                        }
+                    }
+                }
+            } else {
+                requestBluetoothPermissions()
+            }
+        }
         // Set listeners
         finishBtn.setOnClickListener {
             if (selectedPrinterDevice != null) {
                 try {
                     printerHelper.disconnectPrinter()
                     selectedPrinterDevice = null
-                 //   Toast.makeText(this, "Printer disconnected successfully.", Toast.LENGTH_SHORT).show()
+                    //   Toast.makeText(this, "Printer disconnected successfully.", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
                     e.printStackTrace()
-                 //   Toast.makeText(this, "Failed to disconnect printer: ${e.message}", Toast.LENGTH_LONG).show()
+                    //   Toast.makeText(this, "Failed to disconnect printer: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
             finish()
@@ -122,7 +146,7 @@ printBtn.setEnabled(false);
         printBtn.setOnClickListener {
             if (printerHelper.checkBluetoothPermissions()) {
                 if (selectedPrinterDevice != null) {
-                    printreceipt(  )
+                    printreceipt()
                 } else {
                     printerHelper.selectPrinter { printerDevice ->
                         try {
@@ -155,7 +179,7 @@ printBtn.setEnabled(false);
             // Call addToSales only if values are valid
             addToSales(
                 billNumber = billNo ?: 0L, // Default to 0 if null
-                tokenNumber = token?:0,  // Default to 0 if null
+                tokenNumber = token ?: 0,  // Default to 0 if null
                 totalAmount = subtotal,
                 dateTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date()),
                 paymentMethod = CartItemStore.paymentMethod.toString(),
@@ -169,6 +193,10 @@ printBtn.setEnabled(false);
             val adapter = CartItemAdapter(cartItemList)
             recyclerView.adapter = adapter
         }
+    }
+
+    private fun printToken() {
+        printerHelper.printToken(SaleItem)
     }
 
     private fun addToSales(
@@ -194,10 +222,10 @@ printBtn.setEnabled(false);
             customerEmail = customerEmail,
             customerPhone = customerPhone
         )
-        SaleItem=saleItem
+        SaleItem = saleItem
         saleRepository.insertSale(saleItem)
         printBtn.setEnabled(true);
-
+        tokenBtn.setEnabled(true);
     }
 
     private fun calculateTotals() {
@@ -234,6 +262,7 @@ printBtn.setEnabled(false);
     private fun getCurrentDateAndTime(): String {
         return SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
     }
+
     private fun printreceipt() {
 
         printerHelper.printReceipt(SaleItem)
@@ -258,6 +287,7 @@ printBtn.setEnabled(false);
             }
         }
     }
+
     override fun onBackPressed() {
         // Do nothing, preventing back navigation
         Toast.makeText(this, "Press Finish button to go back", Toast.LENGTH_SHORT).show()
