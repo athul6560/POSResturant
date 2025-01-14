@@ -43,7 +43,11 @@
         android:layout_height="wrap_content"
         android:text="Date/Time: 0"
         android:textSize="14sp" />
-
+<Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Print"
+    android:id="@+id/print_btn_sales"/>
     <!-- Items (Optional if you want to show items as a string) -->
 
 </LinearLayout>
