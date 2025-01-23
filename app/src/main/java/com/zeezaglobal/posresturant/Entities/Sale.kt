@@ -21,7 +21,7 @@ data class Sale(
     val items: List<CartItem>,
 
     // Optional fields for customer information
-    val customerName: String? = null,
+    var customerName: String? = null,
     val customerEmail: String? = null,
     val customerPhone: String? = null
 

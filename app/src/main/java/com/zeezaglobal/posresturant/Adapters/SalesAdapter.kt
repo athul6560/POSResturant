@@ -12,9 +12,15 @@ import com.zeezaglobal.posresturant.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class SalesAdapter(private var salesList: List<Sale>, private val listener: OnPrintClickListener) : RecyclerView.Adapter<SalesAdapter.SaleViewHolder>() {
+class SalesAdapter(private var salesList: List<Sale>,
+                   private val listener: OnPrintClickListener,
+                   private val cancelListener: OnCancelClickListener
+) : RecyclerView.Adapter<SalesAdapter.SaleViewHolder>() {
     interface OnPrintClickListener {
         fun onPrintClick(sale: Sale)
+    }
+    interface OnCancelClickListener {
+        fun onCancelClick(sale: Sale)
     }
     private val inputDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     private val outputDateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault())
@@ -33,6 +39,9 @@ class SalesAdapter(private var salesList: List<Sale>, private val listener: OnPr
         holder.dateTime.text = "Date/Time: ${formatDate(sale.dateTime)}"
         holder.print_btn_sales.setOnClickListener {
             listener.onPrintClick(sale) // Trigger the callback
+        }
+        holder.cacncel_btn_sales.setOnClickListener{
+            cancelListener.onCancelClick(sale)
         }
         // Convert items to a readable string if necessary
      //   holder.items.text = "Items: ${Gson().toJson(sale.items)}"
@@ -64,6 +73,7 @@ class SalesAdapter(private var salesList: List<Sale>, private val listener: OnPr
         val totalAmount: TextView = itemView.findViewById(R.id.totalAmount)
         val dateTime: TextView = itemView.findViewById(R.id.dateTime)
         val print_btn_sales: Button = itemView.findViewById(R.id.print_btn_sales)
+        val cacncel_btn_sales: Button = itemView.findViewById(R.id.cancel_btn_sales)
 
     }
 }

@@ -25,7 +25,15 @@ class SaleRepository(private val saleDao: SaleDao) {
             }
         }
     }
-
+    suspend fun editSale(sale: Sale) {
+        try {
+            withContext(Dispatchers.IO) {
+                saleDao.editSale(sale)
+            }
+        } catch (e: Exception) {
+            Log.e("SaleRepository", "Error updating sale: ${e.message}")
+        }
+    }
     suspend fun getSalesByDateRange(startTime:String, endTime:String): List<Sale> {
 
         Log.d("TAG", "getSalesByDateRange: $startTime $endTime")

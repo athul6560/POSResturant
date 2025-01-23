@@ -1,7 +1,12 @@
 package com.zeezaglobal.posresturant.Utils
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import kotlin.random.Random
@@ -15,22 +20,52 @@ class BillandTocken (context: Context){
      * Generates a daily recurring token number.
      * Resets to 1 every new day.
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun generateToken(): Int {
-        val currentDate = getCurrentDate()
-        val savedDate = sharedPreferences.getString("lastTokenDate", "") ?: ""
-        var tokenNumber = sharedPreferences.getInt("lastTokenNumber", 0)
+        val currentDateTime = getCurrentDateTime() // Function to get the current date and time
+        val currentDate = currentDateTime.toLocalDate() // Extract the date part
+        val currentTime = currentDateTime.toLocalTime() // Extract the time part
 
-        if (currentDate != savedDate) {
-            // Reset the token if the day has changed
+        val savedDate = sharedPreferences.getString("lastTokenDate", "") ?: ""
+        val savedTokenNumber = sharedPreferences.getInt("lastTokenNumber", 0)
+        var tokenNumber = savedTokenNumber
+
+        // Check if the current time is past 6 AM or we're still on the last saved day
+        val savedDateTime = LocalDateTime.parse(
+            sharedPreferences.getString("lastResetDateTime", "1970-01-01T06:00:00"),
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        )
+        val lastResetDate = savedDateTime.toLocalDate()
+        val lastResetTime = savedDateTime.toLocalTime()
+
+        if (currentDate.isAfter(lastResetDate) ||
+            (currentDate == lastResetDate && currentTime.isAfter(LocalTime.of(6, 0))) &&
+            lastResetTime.isBefore(LocalTime.of(6, 0))) {
+            // Reset if it's a new day after 6 AM or the saved time is before 6 AM
             tokenNumber = 1
-            saveTokenData(currentDate, tokenNumber)
+            saveTokenData(currentDateTime, tokenNumber)
         } else {
-            // Increment the token number for the current day
+            // Increment for the current day
             tokenNumber++
-            saveTokenData(currentDate, tokenNumber)
+            saveTokenData(savedDateTime, tokenNumber)
         }
 
         return tokenNumber
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun saveTokenData(dateTime: LocalDateTime, tokenNumber: Int) {
+        with(sharedPreferences.edit()) {
+            putString("lastTokenDate", dateTime.toLocalDate().toString())
+            putInt("lastTokenNumber", tokenNumber)
+            putString("lastResetDateTime", dateTime.toString())
+            apply()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getCurrentDateTime(): LocalDateTime {
+        return LocalDateTime.now() // Adjust timezone if needed
     }
 
     /**

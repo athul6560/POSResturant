@@ -13,6 +13,7 @@ import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -44,7 +45,8 @@ import java.util.Date
 import java.util.Locale
 
 
-class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener {
+class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
+    SalesAdapter.OnCancelClickListener {
 
     private var _binding: FragmentAnalyticsBinding? = null
     private lateinit var analyticsViewModel: AnalyticsViewModel
@@ -105,7 +107,7 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
 
-        val adapter = SalesAdapter(emptyList(),this)
+        val adapter = SalesAdapter(emptyList(), this, this)
         recyclerView.adapter = adapter
         // Get today's date
         subHeadingDate.text = DateTimeUtils.getCurrentDate()
@@ -372,6 +374,7 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener {
 
         printerHelper.printReceipt(sale)
     }
+
     private fun requestBluetoothPermissions() {
         ActivityCompat.requestPermissions(
             requireActivity(),
@@ -379,6 +382,7 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener {
             PERMISSION_REQUEST_CODE
         )
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -387,7 +391,11 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(requireContext(), "Bluetooth permissions granted.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Bluetooth permissions granted.",
+                    Toast.LENGTH_SHORT
+                ).show()
             } else {
                 Toast.makeText(
                     requireContext(),
@@ -396,5 +404,28 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener {
                 ).show()
             }
         }
+    }
+
+    override fun onCancelClick(sale: Sale) {
+        // Show a dialog to select the reason for cancellation
+        val reasons = arrayOf("Employee Error", "Customer Cancelled", "Other Reason")
+        var selectedReason = "Employee Error" // Default selection
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Reason for Cancel")
+            .setSingleChoiceItems(reasons, 0) { _, which ->
+                selectedReason = reasons[which]
+            }
+            .setPositiveButton("OK") { _, _ ->
+                sale.customerName = when (selectedReason) {
+                    "Employee Error" -> "Cancelled (Employee Error)"
+                    "Customer Cancelled" -> "Cancelled (Customer Cancelled)"
+                    else -> "Cancelled (Other Reason)"
+                }
+                analyticsViewModel.editSale(sale)
+            }
+            .setNegativeButton("Cancel", null)
+
+        builder.create().show()
     }
 }
