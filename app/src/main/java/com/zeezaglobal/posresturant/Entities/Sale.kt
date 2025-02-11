@@ -14,6 +14,7 @@ data class Sale(
     val id: Long = 0, // Unique ID for each sale
     val billNumber: Long,
     val tokenNumber: Int,
+    var status: Int,
     val totalAmount: Double,
     val dateTime: String,
     val paymentMethod: String,

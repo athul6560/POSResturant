@@ -298,20 +298,11 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
 
 
     private fun calculateTotalSalesAmount(saleList: List<Sale>?): Double {
-        // Check if saleList is null or empty, return 0.0 if true
-        if (saleList.isNullOrEmpty()) {
-            return 0.0
-        }
-
-        // Sum the totalAmount of all Sales in the list
-        val totalSales = saleList.sumOf { it.totalAmount }
-
-        return totalSales
+        return saleList?.filter { it.status == 0 }?.sumOf { it.totalAmount } ?: 0.0
     }
 
     private fun calculateTotalSales(saleList: List<Sale>?): Int {
-        // Check if saleList is null or empty, return 0 if true
-        return saleList?.size ?: 0
+        return saleList?.count { it.status == 0 } ?: 0
     }
 
 
@@ -320,12 +311,11 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
         var upiSales = 0.0
         var creditCardSales = 0.0
 
-        saleList?.forEach { sale ->
+        saleList?.filter { it.status == 0 }?.forEach { sale ->
             when (sale.paymentMethod) {
-                "Cash" -> cashSales += sale.totalAmount // Assuming 'amount' is the sale amount
+                "Cash" -> cashSales += sale.totalAmount
                 "UPI" -> upiSales += sale.totalAmount
                 "Card" -> creditCardSales += sale.totalAmount
-                else -> {} // Handle any other payment types if necessary
             }
         }
 
@@ -422,6 +412,7 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
                     "Customer Cancelled" -> "Cancelled (Customer Cancelled)"
                     else -> "Cancelled (Other Reason)"
                 }
+                sale.status = 1
                 analyticsViewModel.editSale(sale)
             }
             .setNegativeButton("Cancel", null)

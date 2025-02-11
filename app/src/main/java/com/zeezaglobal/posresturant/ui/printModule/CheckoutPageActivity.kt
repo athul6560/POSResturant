@@ -250,7 +250,8 @@ class CheckoutPageActivity : AppCompatActivity() {
             items = cartItemList, // Assign the passed list of CartItems
             customerName = customerName,
             customerEmail = customerEmail,
-            customerPhone = customerPhone
+            customerPhone = customerPhone,
+            status = 0
         )
         SaleItem = saleItem
         saleRepository.insertSale(saleItem)
