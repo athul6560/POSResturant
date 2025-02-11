@@ -3,6 +3,7 @@ package com.zeezaglobal.posresturant.Adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
@@ -11,7 +12,16 @@ import com.zeezaglobal.posresturant.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class SalesAdapter(private var salesList: List<Sale>) : RecyclerView.Adapter<SalesAdapter.SaleViewHolder>() {
+class SalesAdapter(private var salesList: List<Sale>,
+                   private val listener: OnPrintClickListener,
+                   private val cancelListener: OnCancelClickListener
+) : RecyclerView.Adapter<SalesAdapter.SaleViewHolder>() {
+    interface OnPrintClickListener {
+        fun onPrintClick(sale: Sale)
+    }
+    interface OnCancelClickListener {
+        fun onCancelClick(sale: Sale)
+    }
     private val inputDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
     private val outputDateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault())
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SaleViewHolder {
@@ -27,7 +37,12 @@ class SalesAdapter(private var salesList: List<Sale>) : RecyclerView.Adapter<Sal
         holder.tokenNumber.text = "Token: ${sale.tokenNumber}"
         holder.totalAmount.text = "Total: ₹${sale.totalAmount}"
         holder.dateTime.text = "Date/Time: ${formatDate(sale.dateTime)}"
-
+        holder.print_btn_sales.setOnClickListener {
+            listener.onPrintClick(sale) // Trigger the callback
+        }
+        holder.cacncel_btn_sales.setOnClickListener{
+            cancelListener.onCancelClick(sale)
+        }
         // Convert items to a readable string if necessary
      //   holder.items.text = "Items: ${Gson().toJson(sale.items)}"
 
@@ -57,6 +72,8 @@ class SalesAdapter(private var salesList: List<Sale>) : RecyclerView.Adapter<Sal
         val tokenNumber: TextView = itemView.findViewById(R.id.tokenNumber)
         val totalAmount: TextView = itemView.findViewById(R.id.totalAmount)
         val dateTime: TextView = itemView.findViewById(R.id.dateTime)
+        val print_btn_sales: Button = itemView.findViewById(R.id.print_btn_sales)
+        val cacncel_btn_sales: Button = itemView.findViewById(R.id.cancel_btn_sales)
 
     }
 }

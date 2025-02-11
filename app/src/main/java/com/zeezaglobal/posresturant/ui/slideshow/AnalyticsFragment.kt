@@ -1,6 +1,9 @@
 package com.zeezaglobal.posresturant.ui.slideshow
 
+import android.Manifest
+import android.bluetooth.BluetoothDevice
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -10,7 +13,9 @@ import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -22,6 +27,7 @@ import com.zeezaglobal.posresturant.Adapters.SalesAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
 import com.zeezaglobal.posresturant.Entities.Group
 import com.zeezaglobal.posresturant.Entities.Sale
+import com.zeezaglobal.posresturant.Printer.BTPrinterLogic
 import com.zeezaglobal.posresturant.R
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.SaleRepository
@@ -39,7 +45,8 @@ import java.util.Date
 import java.util.Locale
 
 
-class AnalyticsFragment : Fragment() {
+class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
+    SalesAdapter.OnCancelClickListener {
 
     private var _binding: FragmentAnalyticsBinding? = null
     private lateinit var analyticsViewModel: AnalyticsViewModel
@@ -63,7 +70,9 @@ class AnalyticsFragment : Fragment() {
     private lateinit var _groupList: List<Group>
     private val RANGE_SELECTION = 0
     private val DAY_SELECTION = 1
-
+    private lateinit var printerHelper: BTPrinterLogic
+    private var selectedPrinterDevice: BluetoothDevice? = null
+    private val PERMISSION_REQUEST_CODE = 1001
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,7 +88,7 @@ class AnalyticsFragment : Fragment() {
         )
         _binding = FragmentAnalyticsBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
+        printerHelper = BTPrinterLogic(requireContext())
         textView22 = root.findViewById(R.id.textView22)
         subHeadingDate = root.findViewById(R.id.textView26)
         dateSelectionDate = root.findViewById(R.id.DateSelectionText)
@@ -98,7 +107,7 @@ class AnalyticsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
 
-        val adapter = SalesAdapter(emptyList())
+        val adapter = SalesAdapter(emptyList(), this, this)
         recyclerView.adapter = adapter
         // Get today's date
         subHeadingDate.text = DateTimeUtils.getCurrentDate()
@@ -122,7 +131,7 @@ class AnalyticsFragment : Fragment() {
         analyticsViewModel.fetchSalesForDate(startTime, endTime)
         analyticsViewModel.fetchAllGroups()
         ExportButton.setOnClickListener {
-            exportSalesToCSV(_saleList,_groupList)
+            exportSalesToCSV(_saleList, _groupList)
         }
         calender_btn.setOnClickListener {
             //  calenderPopup()
@@ -174,7 +183,8 @@ class AnalyticsFragment : Fragment() {
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay)
             val endTime =
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(endOfDay)
-            dateSelectionDate.text = SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(selectedDate)
+            dateSelectionDate.text =
+                SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(selectedDate)
             analyticsViewModel.fetchSalesForDate(startTime, endTime)
         }
 
@@ -192,8 +202,9 @@ class AnalyticsFragment : Fragment() {
                 startDate,
                 endDate
             ) // Pass the Date objects
-            dateSelectionDate.text = SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(startDate)+"-"+
-                    SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(endDate)
+            dateSelectionDate.text =
+                SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(startDate) + "-" +
+                        SimpleDateFormat("dd, MMMM", Locale.getDefault()).format(endDate)
 // Format the start and end times
             val startTime =
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay)
@@ -214,7 +225,11 @@ class AnalyticsFragment : Fragment() {
 
     private fun exportSalesToCSV(saleList: List<Sale>?, groupList: List<Group>?) {
         if (saleList.isNullOrEmpty() || groupList.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "No sales or groups data to export", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "No sales or groups data to export",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -235,21 +250,22 @@ class AnalyticsFragment : Fragment() {
                         // Write sale data for each item
                         if (group != null) {
                             writer.append(
-                            "${sale.id}," +
-                                    "${sale.billNumber}," +
-                                    "${sale.tokenNumber}," +
-                                    "${sale.totalAmount}," +
-                                    "${sale.customerName}," +
-                                    "${sale.customerPhone}," +
-                                    "${sale.customerEmail}," +
-                                    "${sale.dateTime}," +
-                                    "${sale.paymentMethod}," +
-                                    "${itemDetail.item.itemName}," +
-                                    "${itemDetail.item.itemPrice}," +
-                                    "${group.groupName}," +
-                                    "${itemDetail.quantity}\n"
-                        )
-                    }}
+                                "${sale.id}," +
+                                        "${sale.billNumber}," +
+                                        "${sale.tokenNumber}," +
+                                        "${sale.totalAmount}," +
+                                        "${sale.customerName}," +
+                                        "${sale.customerPhone}," +
+                                        "${sale.customerEmail}," +
+                                        "${sale.dateTime}," +
+                                        "${sale.paymentMethod}," +
+                                        "${itemDetail.item.itemName}," +
+                                        "${itemDetail.item.itemPrice}," +
+                                        "${group.groupName}," +
+                                        "${itemDetail.quantity}\n"
+                            )
+                        }
+                    }
                 }
                 writer.flush()
             }
@@ -282,20 +298,11 @@ class AnalyticsFragment : Fragment() {
 
 
     private fun calculateTotalSalesAmount(saleList: List<Sale>?): Double {
-        // Check if saleList is null or empty, return 0.0 if true
-        if (saleList.isNullOrEmpty()) {
-            return 0.0
-        }
-
-        // Sum the totalAmount of all Sales in the list
-        val totalSales = saleList.sumOf { it.totalAmount }
-
-        return totalSales
+        return saleList?.filter { it.status == 0 }?.sumOf { it.totalAmount } ?: 0.0
     }
 
     private fun calculateTotalSales(saleList: List<Sale>?): Int {
-        // Check if saleList is null or empty, return 0 if true
-        return saleList?.size ?: 0
+        return saleList?.count { it.status == 0 } ?: 0
     }
 
 
@@ -304,12 +311,11 @@ class AnalyticsFragment : Fragment() {
         var upiSales = 0.0
         var creditCardSales = 0.0
 
-        saleList?.forEach { sale ->
+        saleList?.filter { it.status == 0 }?.forEach { sale ->
             when (sale.paymentMethod) {
-                "Cash" -> cashSales += sale.totalAmount // Assuming 'amount' is the sale amount
+                "Cash" -> cashSales += sale.totalAmount
                 "UPI" -> upiSales += sale.totalAmount
-                "Debit/Credit Card" -> creditCardSales += sale.totalAmount
-                else -> {} // Handle any other payment types if necessary
+                "Card" -> creditCardSales += sale.totalAmount
             }
         }
 
@@ -325,5 +331,92 @@ class AnalyticsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onPrintClick(sale: Sale) {
+        if (printerHelper.checkBluetoothPermissions()) {
+            if (selectedPrinterDevice != null) {
+                printreceipt(sale)
+            } else {
+                printerHelper.selectPrinter { printerDevice ->
+                    try {
+                        selectedPrinterDevice = printerDevice
+                        printerHelper.connectToPrinter(printerDevice)
+
+                        printreceipt(sale)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed to print: ${e.message}",
+                            Toast.LENGTH_LONG
+                        )
+                            .show()
+                    }
+                }
+            }
+        } else {
+            requestBluetoothPermissions()
+        }
+    }
+
+    private fun printreceipt(sale: Sale) {
+
+        printerHelper.printReceipt(sale)
+    }
+
+    private fun requestBluetoothPermissions() {
+        ActivityCompat.requestPermissions(
+            requireActivity(),
+            arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+            PERMISSION_REQUEST_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(
+                    requireContext(),
+                    "Bluetooth permissions granted.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "Bluetooth permissions are required to connect to the printer.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    override fun onCancelClick(sale: Sale) {
+        // Show a dialog to select the reason for cancellation
+        val reasons = arrayOf("Employee Error", "Customer Cancelled", "Other Reason")
+        var selectedReason = "Employee Error" // Default selection
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Reason for Cancel")
+            .setSingleChoiceItems(reasons, 0) { _, which ->
+                selectedReason = reasons[which]
+            }
+            .setPositiveButton("OK") { _, _ ->
+                sale.customerName = when (selectedReason) {
+                    "Employee Error" -> "Cancelled (Employee Error)"
+                    "Customer Cancelled" -> "Cancelled (Customer Cancelled)"
+                    else -> "Cancelled (Other Reason)"
+                }
+                sale.status = 1
+                analyticsViewModel.editSale(sale)
+            }
+            .setNegativeButton("Cancel", null)
+
+        builder.create().show()
     }
 }

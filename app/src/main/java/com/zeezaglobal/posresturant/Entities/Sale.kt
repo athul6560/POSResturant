@@ -13,7 +13,8 @@ data class Sale(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0, // Unique ID for each sale
     val billNumber: Long,
-    val tokenNumber: Long,
+    val tokenNumber: Int,
+    var status: Int,
     val totalAmount: Double,
     val dateTime: String,
     val paymentMethod: String,
@@ -21,7 +22,7 @@ data class Sale(
     val items: List<CartItem>,
 
     // Optional fields for customer information
-    val customerName: String? = null,
+    var customerName: String? = null,
     val customerEmail: String? = null,
     val customerPhone: String? = null
 

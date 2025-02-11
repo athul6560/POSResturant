@@ -1,5 +1,6 @@
 package com.zeezaglobal.posresturant.ui.slideshow
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -37,6 +38,18 @@ class AnalyticsViewModel (private val saleRepository: SaleRepository,private val
                 _groups.postValue(groupList)
             } catch (e: Exception) {
                 _groups.postValue(emptyList())
+            }
+        }
+    }
+    // Edit a sale and update the LiveData if needed
+    fun editSale(updatedSale: Sale) {
+        viewModelScope.launch {
+            try {
+                saleRepository.editSale(updatedSale) // Update the sale in the database
+
+            } catch (e: Exception) {
+                // Handle the error
+                Log.e("AnalyticsViewModel", "Error editing sale: ${e.message}")
             }
         }
     }

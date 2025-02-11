@@ -7,7 +7,7 @@
     tools:context=".MainActivity"
     android:gravity="center"
     android:background="@color/light_grey"
-   >
+    >
 
 
 
@@ -377,13 +377,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <TextView
-            android:id="@+id/payment_method"
+        <Spinner
+            android:id="@+id/payment_method_spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:text="TextView"
+            android:entries="@array/payment_methods"
             app:layout_constraintStart_toEndOf="@+id/textView23"
             app:layout_constraintTop_toBottomOf="@+id/tocken_number" />
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -407,6 +407,16 @@
         android:text="Save Sale"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/button_bluetooth" />
+
+    <Button
+        android:id="@+id/tocken_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Print Tocken"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/save_check" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

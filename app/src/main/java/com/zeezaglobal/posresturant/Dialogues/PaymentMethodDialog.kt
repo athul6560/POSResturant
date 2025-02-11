@@ -29,8 +29,8 @@ class PaymentMethodDialog(private val context: Context) {
             dialog.dismiss()
         }
 
-        builder.setNegativeButton("Debit/Credit Card") { dialog, _ ->
-            listener?.onPaymentMethodSelected("Debit/Credit Card")
+        builder.setNegativeButton("Card") { dialog, _ ->
+            listener?.onPaymentMethodSelected("Card")
             dialog.dismiss()
         }
 
