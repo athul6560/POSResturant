@@ -21,9 +21,12 @@
         android:theme="@style/Theme.POSResturant"
         tools:targetApi="31">
         <activity
-            android:name=".ui.printModule.CheckoutPageActivity"
-            android:screenOrientation="landscape"
+            android:name=".ui.UploadExcel.UploadActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.printModule.CheckoutPageActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -39,7 +42,6 @@
             android:name=".ui.EditMenu.EditMenuActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
