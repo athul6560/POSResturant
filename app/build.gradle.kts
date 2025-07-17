@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.zeezaglobal.posresturant"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -60,7 +60,8 @@ dependencies {
 // Kotlin Extensions and Coroutines support for Room
     implementation ("androidx.room:room-ktx:$room_version")
 
-
+    implementation ("org.apache.poi:poi:5.2.3")
+    implementation ("org.apache.poi:poi-ooxml:5.2.3")
     implementation ("com.google.code.gson:gson:2.11.0")
 
 

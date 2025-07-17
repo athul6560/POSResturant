@@ -53,6 +53,10 @@
         android:layout_height="wrap_content"
         android:text="Cancel Sale"
         android:id="@+id/cancel_btn_sales"/>
-    <!-- Items (Optional if you want to show items as a string) -->
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Whatsapp Message"
+        android:id="@+id/whatsapp_btn"/>
 
 </LinearLayout>
