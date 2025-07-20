@@ -30,7 +30,7 @@ class POSApp : Application() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             CoroutineScope(Dispatchers.IO).launch {
-                populateDatabase(database)
+              //  populateDatabase(database)
             }
         }
     }
