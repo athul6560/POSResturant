@@ -1,14 +1,18 @@
 package com.zeezaglobal.posresturant.Adapters
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.zeezaglobal.posresturant.Entities.Sale
 import com.zeezaglobal.posresturant.R
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -43,6 +47,23 @@ class SalesAdapter(private var salesList: List<Sale>,
         holder.cacncel_btn_sales.setOnClickListener{
             cancelListener.onCancelClick(sale)
         }
+        holder.whatsapp_btn.setOnClickListener {
+            val context = holder.itemView.context
+            val rawPhone = sale.customerPhone?.trim()?.replace("\\s".toRegex(), "")
+            val phoneNumber = "+91$rawPhone".replace("+", "") // WhatsApp needs international format without the '+' sign
+            val message = "Hi it’s BEAN BARREL HERE. How was your drink today? Your opinion helps us brew better every time.\n" +
+                    "Please share your thoughts — even a few words mean a lot!\n" +
+                    "…IF BUSY PLEASE RATE OUR DRINK FROM 1 to 5"
+
+            val uri = Uri.parse("https://wa.me/$phoneNumber?text=${URLEncoder.encode(message, "UTF-8")}")
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, "WhatsApp not installed", Toast.LENGTH_SHORT).show()
+            }
+        }
         // Convert items to a readable string if necessary
      //   holder.items.text = "Items: ${Gson().toJson(sale.items)}"
 
@@ -74,6 +95,7 @@ class SalesAdapter(private var salesList: List<Sale>,
         val dateTime: TextView = itemView.findViewById(R.id.dateTime)
         val print_btn_sales: Button = itemView.findViewById(R.id.print_btn_sales)
         val cacncel_btn_sales: Button = itemView.findViewById(R.id.cancel_btn_sales)
+        val whatsapp_btn: Button = itemView.findViewById(R.id.whatsapp_btn)
 
     }
 }
