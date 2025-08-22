@@ -68,7 +68,7 @@ class UploadActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     progressBar.progress = 50
                 }
-                val menuItems = parseExcelFile(this@UploadActivity, uri)
+             /*   val menuItems = parseExcelFile(this@UploadActivity, uri)
               //  ItemListAfterLoading = convertmenuItemtoItem(menuItems)
                 withContext(Dispatchers.Main) {
                     progressBar.progress = 100
@@ -78,7 +78,7 @@ class UploadActivity : AppCompatActivity() {
                         "Uploaded ${menuItems.size} items!",
                         Toast.LENGTH_LONG
                     ).show()
-                }
+                }*/
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
