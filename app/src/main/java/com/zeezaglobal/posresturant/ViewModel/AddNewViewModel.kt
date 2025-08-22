@@ -61,7 +61,7 @@ class AddNewViewModel(
         }
     }
 
-    // Get items by group
+    // Get items by group jh
     fun loadItemsForGroup(groupId: Int) {
         viewModelScope.launch {
             val items = itemRepository.getItemsByGroup(groupId)
