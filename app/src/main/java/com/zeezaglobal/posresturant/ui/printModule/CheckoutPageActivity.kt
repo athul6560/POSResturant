@@ -254,7 +254,7 @@ class CheckoutPageActivity : AppCompatActivity() {
             status = 0
         )
         SaleItem = saleItem
-        saleRepository.insertSale(saleItem)
+        saleRepository.insertSale(saleItem,this)
         printBtn.setEnabled(true);
         tokenBtn.setEnabled(true);
     }

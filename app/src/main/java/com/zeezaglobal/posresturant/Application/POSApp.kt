@@ -17,6 +17,7 @@ class POSApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         database = Room.databaseBuilder(
             applicationContext,
             POSDatabase::class.java,
@@ -25,7 +26,10 @@ class POSApp : Application() {
             .addCallback(DatabaseCallback())
             .build()
     }
-
+    companion object {
+        lateinit var instance: POSApp
+            private set
+    }
     private inner class DatabaseCallback : RoomDatabase.Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)

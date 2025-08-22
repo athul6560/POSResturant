@@ -14,7 +14,7 @@ object RetrofitInstance {
 
     val api: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:9091/") // For emulator (use localhost:9091 if real device with port forwarding)
+            .baseUrl("http://10.0.2.2:9091/api/") // For emulator (use localhost:9091 if real device with port forwarding)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

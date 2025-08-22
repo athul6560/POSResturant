@@ -24,6 +24,8 @@ data class Sale(
     // Optional fields for customer information
     var customerName: String? = null,
     val customerEmail: String? = null,
-    val customerPhone: String? = null
+    val customerPhone: String? = null,
+
+    val syncStatus: Boolean = false
 
 )
