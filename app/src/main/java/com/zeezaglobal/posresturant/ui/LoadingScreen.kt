@@ -21,6 +21,7 @@ import com.zeezaglobal.posresturant.Repository.ApiRepository
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.ViewModel.GroupViewModelFactory
 import com.zeezaglobal.posresturant.ViewModel.LoadingViewmodel
+import com.zeezaglobal.posresturant.ui.loginPage.LoginActivity
 
 
 class LoadingScreen : AppCompatActivity() {
@@ -60,7 +61,7 @@ class LoadingScreen : AppCompatActivity() {
                 }
             }
             // When done, go to MainActivity
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish()
         }.start()

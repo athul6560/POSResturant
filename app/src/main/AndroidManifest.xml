@@ -12,7 +12,6 @@
     <application
         android:name=".Application.POSApp"
         android:allowBackup="false"
-        android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -20,17 +19,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.POSResturant"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".ui.LoadingScreen"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:exported="true">
-        <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
+            android:name=".ui.loginPage.LoginActivity"
 
-        <category android:name="android.intent.category.LAUNCHER" />
-    </intent-filter>
-    </activity>
+            android:exported="false" />
+        <activity
+            android:name=".ui.LoadingScreen"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.printModule.CheckoutPageActivity"
             android:exported="false"
@@ -55,9 +59,7 @@
             android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="landscape"
-            android:theme="@style/Theme.POSResturant.NoActionBar">
-
-        </activity>
+            android:theme="@style/Theme.POSResturant.NoActionBar"></activity>
 
         <meta-data
             android:name="preloaded_fonts"
