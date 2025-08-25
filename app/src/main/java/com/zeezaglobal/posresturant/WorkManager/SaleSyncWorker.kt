@@ -54,6 +54,7 @@ private fun SaleSyncWorker.saleMapper(sale: Sale): SaleRequest {
         billNumber = sale.billNumber,
         tokenNumber = sale.tokenNumber,
         status = sale.status,
+        store = sale.store,
         totalAmount = sale.totalAmount,
         dateTime = sale.dateTime,
         paymentMethod = sale.paymentMethod,

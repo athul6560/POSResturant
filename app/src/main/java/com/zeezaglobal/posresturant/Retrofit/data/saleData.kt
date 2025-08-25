@@ -9,6 +9,7 @@ data class SaleRequest(
     val billNumber: Long,
     val tokenNumber: Int,
     val status: Int,
+    val store: Int,
     val totalAmount: Double,
     val dateTime: String,
     val paymentMethod: String,

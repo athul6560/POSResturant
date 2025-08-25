@@ -15,6 +15,7 @@ data class Sale(
     val billNumber: Long,
     val tokenNumber: Int,
     var status: Int,
+    var store: Int,
     val totalAmount: Double,
     val dateTime: String,
     val paymentMethod: String,

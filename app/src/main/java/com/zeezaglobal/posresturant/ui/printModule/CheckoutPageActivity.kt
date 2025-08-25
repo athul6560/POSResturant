@@ -9,6 +9,7 @@ import android.widget.Toast
 import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.pm.PackageManager
+import android.preference.PreferenceManager
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -33,6 +34,7 @@ import com.zeezaglobal.posresturant.Printer.BTPrinterLogic
 import com.zeezaglobal.posresturant.R
 import com.zeezaglobal.posresturant.Repository.SaleRepository
 import com.zeezaglobal.posresturant.Utils.BillandTocken
+import com.zeezaglobal.posresturant.Utils.StorePreferenceManager
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -116,7 +118,7 @@ class CheckoutPageActivity : AppCompatActivity() {
                 id: Long
             ) {
                 val selectedMethod = parent.getItemAtPosition(position).toString()
-                CartItemStore.paymentMethod=selectedMethod
+                CartItemStore.paymentMethod = selectedMethod
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -251,12 +253,18 @@ class CheckoutPageActivity : AppCompatActivity() {
             customerName = customerName,
             customerEmail = customerEmail,
             customerPhone = customerPhone,
-            status = 0
+            status = 0,
+            store = getstoreId()
         )
         SaleItem = saleItem
-        saleRepository.insertSale(saleItem,this)
+        saleRepository.insertSale(saleItem, this)
         printBtn.setEnabled(true);
         tokenBtn.setEnabled(true);
+    }
+
+    private fun getstoreId(): Int {
+        val storeId = StorePreferenceManager.getStoreId(this)
+       return storeId
     }
 
     private fun calculateTotals() {
