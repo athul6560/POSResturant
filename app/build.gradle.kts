@@ -45,13 +45,13 @@ android {
             dimension = "env"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:9091/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://10.0.0.37:9091/api/\"")
         }
         create("prod") {
             dimension = "env"
             applicationIdSuffix = ".prod"
             versionNameSuffix = "-prod"
-            buildConfigField("String", "BASE_URL", "\"https://api.beanbarrel.in/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://147.93.43.194:9091/api/\"")
         }
     }
 }

@@ -413,6 +413,7 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
                     else -> "Cancelled (Other Reason)"
                 }
                 sale.status = 1
+                sale.syncStatus=false
                 analyticsViewModel.editSale(sale)
             }
             .setNegativeButton("Cancel", null)

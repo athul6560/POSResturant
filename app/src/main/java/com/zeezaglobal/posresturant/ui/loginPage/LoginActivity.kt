@@ -49,14 +49,14 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleLogin(username: String, password: String) {
         when {
-            username == "ernakulam@beanbarrel.in" && password == "1234" -> {
+            username == "1111" && password == "pass" -> {
                 StorePreferenceManager.saveStoreId(this, 0) // 0 = Ernakulam
                 Toast.makeText(this, "Login successful: Ernakulam branch", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
                 finish()
             }
-            username == "aluva@beanbarrel.in" && password == "1234" -> {
+            username == "2222" && password == "pass" -> {
                 StorePreferenceManager.saveStoreId(this, 1) // 1 = Aluva
                 Toast.makeText(this, "Login successful: Aluva branch", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, MainActivity::class.java)

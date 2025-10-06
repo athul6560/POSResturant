@@ -27,6 +27,6 @@ data class Sale(
     val customerEmail: String? = null,
     val customerPhone: String? = null,
 
-    val syncStatus: Boolean = false
+    var syncStatus: Boolean = false
 
 )
