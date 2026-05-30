@@ -1,8 +1,10 @@
 package com.zeezaglobal.posresturant.ui.addNewItem
 
 import android.R
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +16,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -36,16 +39,22 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
 
     private var _binding: FragmentAddNewBinding? = null
     private lateinit var addNewViewModel: AddNewViewModel
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
-    // Declare the EditTexts
     private lateinit var itemNameEditText: EditText
     private lateinit var itemDescriptionEditText: EditText
     private lateinit var itemPriceEditText: EditText
     private var selectedGroupId: Int? = null
     private lateinit var itemRecyclerView: RecyclerView
     private lateinit var itemAdapter: ItemAdapter
+
+    private val excelPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri: Uri = result.data?.data ?: return@registerForActivityResult
+            handleExcelUpload(uri)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -104,6 +113,16 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
                 // Handle no selection if needed
             }
         }
+        // Upload Menu button
+        val uploadMenuButton: Button = binding.uploadMenuButton
+        uploadMenuButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                addCategory(Intent.CATEGORY_OPENABLE)
+            }
+            excelPickerLauncher.launch(Intent.createChooser(intent, "Select Excel Menu File"))
+        }
+
         // Initialize submit button
         val submitButton: Button = binding.button
         submitButton.setOnClickListener {
@@ -171,6 +190,21 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
         // Show the dialog
         alertDialog.show()
 
+    }
+
+    private fun handleExcelUpload(uri: Uri) {
+        val uploadBtn = binding.uploadMenuButton
+        uploadBtn.isEnabled = false
+        uploadBtn.text = "Importing..."
+        addNewViewModel.importFromExcel(requireContext(), uri) { itemCount ->
+            uploadBtn.isEnabled = true
+            uploadBtn.text = "Upload Menu"
+            if (itemCount >= 0) {
+                Toast.makeText(requireContext(), "Imported $itemCount items successfully!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(requireContext(), "Import failed. Check the file format.", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     override fun onDestroyView() {

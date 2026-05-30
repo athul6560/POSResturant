@@ -25,7 +25,8 @@ class SaleRepository(private val saleDao: SaleDao) {
         executor.execute {
             try {
                 saleDao.insertSale(item)
-                syncSales(context)
+                // OFFLINE MODE: sync disabled temporarily
+                // syncSales(context)
             } catch (e: Exception) {
                 Log.e("SaleRepository", "Error inserting sale: ${e.message}")
 

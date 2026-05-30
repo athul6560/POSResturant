@@ -1,6 +1,7 @@
 package com.zeezaglobal.posresturant.ui.slideshow
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -116,8 +118,13 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
             _saleList = saleList
             adapter.updateSales(saleList)
             setGraph(saleList)
-            totalSalesText.setText(calculateTotalSales(saleList).toString())
-            saleAmount.setText("₹" + calculateTotalSalesAmount(saleList))
+
+            val count = calculateTotalSales(saleList)
+            val amount = calculateTotalSalesAmount(saleList)
+
+            animateCounter(totalSalesText, count)
+            animateMoney(saleAmount, amount)
+            animateCards(root)
         })
 
         analyticsViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
@@ -327,6 +334,63 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
         )
     }
 
+
+    // ── Animations ────────────────────────────────────────────────────────────
+
+    /** Counts up from 0 to [target] over 900ms. */
+    private fun animateCounter(textView: TextView, target: Int) {
+        ValueAnimator.ofInt(0, target).apply {
+            duration = 900
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { textView.text = it.animatedValue.toString() }
+            start()
+        }
+    }
+
+    /** Counts up from ₹0 to [target] amount over 900ms. */
+    private fun animateMoney(textView: TextView, target: Double) {
+        ValueAnimator.ofFloat(0f, target.toFloat()).apply {
+            duration = 900
+            interpolator = DecelerateInterpolator()
+            addUpdateListener {
+                textView.text = "₹%.0f".format(it.animatedValue as Float)
+            }
+            start()
+        }
+    }
+
+    /**
+     * Slides the three stat cards up from below with a staggered delay,
+     * and fades in the sales list.
+     */
+    private fun animateCards(root: View) {
+        val card1 = root.findViewById<View>(R.id.linearLayout)
+        val card2 = root.findViewById<View>(R.id.linearLayout2)
+        val card3 = root.findViewById<View>(R.id.linearLayout3)
+        val list  = root.findViewById<View>(R.id.salesRecyclerView)
+        val label = root.findViewById<View>(R.id.sales_history_label)
+
+        listOf(card1, card2, card3).forEachIndexed { i, card ->
+            card.alpha = 0f
+            card.translationY = 60f
+            card.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(450)
+                .setStartDelay((i * 100).toLong())
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+        listOf(list, label).forEach { v ->
+            v.alpha = 0f
+            v.animate()
+                .alpha(1f)
+                .setDuration(500)
+                .setStartDelay(350)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

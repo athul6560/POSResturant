@@ -30,7 +30,6 @@ import com.zeezaglobal.posresturant.Adapters.GridAdapter
 
 import com.zeezaglobal.posresturant.Adapters.HorizontalAdapter
 import com.zeezaglobal.posresturant.Application.POSApp
-import com.zeezaglobal.posresturant.Dialogues.PaymentMethodDialog
 import com.zeezaglobal.posresturant.Entities.CartItem
 import com.zeezaglobal.posresturant.Entities.CartItemStore
 import com.zeezaglobal.posresturant.R
@@ -111,18 +110,9 @@ class HomeFragment : Fragment() {
                 Toast.makeText(requireContext(), "Cart is empty", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val paymentDialog = PaymentMethodDialog(requireContext())
-            paymentDialog.setPaymentMethodListener(object :
-                PaymentMethodDialog.PaymentMethodListener {
-                override fun onPaymentMethodSelected(method: String) {
-
-                    CartItemStore.cartItemList = listOfCartItems
-                    CartItemStore.paymentMethod = method
-                    startActivity(Intent(requireContext(), CheckoutPageActivity::class.java))
-                }
-            })
-            paymentDialog.show()
-
+            CartItemStore.cartItemList = listOfCartItems
+            CartItemStore.paymentMethod = "Cash" // default; user changes it on checkout page
+            startActivity(Intent(requireContext(), CheckoutPageActivity::class.java))
         }
 
         horizondalrecyclerView.adapter = horizondaladapter

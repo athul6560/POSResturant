@@ -9,89 +9,118 @@ import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import com.zeezaglobal.posresturant.Application.POSApp
+import com.zeezaglobal.posresturant.Entities.Group
 import com.zeezaglobal.posresturant.Entities.Item
-import com.zeezaglobal.posresturant.Entities.MenuItem
 import com.zeezaglobal.posresturant.R
+import com.zeezaglobal.posresturant.Utils.ExcelParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val TAG = "UploadActivity"
+
 class UploadActivity : AppCompatActivity() {
-    private val PICK_EXCEL_REQUEST_CODE = 100
+
     private lateinit var progressBar: ProgressBar
-    private lateinit var ItemListAfterLoading: List<Item>
+    private lateinit var uploadBtn: Button
+
+    private val excelPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.data
+            if (uri != null) {
+                Log.d(TAG, "File selected: $uri")
+                handleExcelUpload(uri)
+            } else {
+                Log.w(TAG, "File picker returned OK but uri is null")
+            }
+        } else {
+            Log.d(TAG, "File picker cancelled (resultCode=${result.resultCode})")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_upload)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+
         progressBar = findViewById(R.id.progressBar)
-        val uploadBtn = findViewById<Button>(R.id.button2)
+        uploadBtn = findViewById(R.id.button2)
+
         uploadBtn.setOnClickListener {
-            pickExcelFile()
-        }
-    }
-
-    private fun pickExcelFile() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        startActivityForResult(
-            Intent.createChooser(intent, "Select Excel File"),
-            PICK_EXCEL_REQUEST_CODE
-        )
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == PICK_EXCEL_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-                handleExcelUpload(uri)
+            Log.d(TAG, "Upload button clicked — opening file picker")
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                addCategory(Intent.CATEGORY_OPENABLE)
             }
+            excelPickerLauncher.launch(Intent.createChooser(intent, "Select Excel Menu File"))
         }
     }
 
     private fun handleExcelUpload(uri: Uri) {
+        Log.d(TAG, "handleExcelUpload() called with uri: $uri")
+        uploadBtn.isEnabled = false
         progressBar.visibility = View.VISIBLE
+        progressBar.progress = 0
+
+        val application = application as POSApp
+        val groupDao = application.database.groupDao()
+        val itemDao = application.database.itemDao()
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                withContext(Dispatchers.Main) {
-                    progressBar.progress = 50
+                withContext(Dispatchers.Main) { progressBar.progress = 10 }
+
+                Log.d(TAG, "Starting ExcelParser.parse()")
+                val menuMap = ExcelParser.parse(this@UploadActivity, uri)
+                Log.d(TAG, "ExcelParser returned ${menuMap.size} categories")
+
+                withContext(Dispatchers.Main) { progressBar.progress = 40 }
+
+                if (menuMap.isEmpty()) {
+                    Log.e(TAG, "menuMap is empty — nothing to import")
+                    withContext(Dispatchers.Main) {
+                        progressBar.visibility = View.GONE
+                        uploadBtn.isEnabled = true
+                        Toast.makeText(this@UploadActivity, "No data found. Check column headers (CATEGORY, ITEM NAME).", Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
                 }
-             /*   val menuItems = parseExcelFile(this@UploadActivity, uri)
-              //  ItemListAfterLoading = convertmenuItemtoItem(menuItems)
+
+                Log.d(TAG, "Clearing existing groups and items...")
+                groupDao.deleteAllGroups() // cascades to items
+                withContext(Dispatchers.Main) { progressBar.progress = 60 }
+
+                var totalItems = 0
+                menuMap.forEach { (categoryName, itemList) ->
+                    Log.d(TAG, "Inserting group: \"$categoryName\" with ${itemList.size} items")
+                    val groupId = groupDao.insertGroupAndGetId(Group(groupName = categoryName)).toInt()
+                    itemList.forEach { (name, price) ->
+                        itemDao.insertItem(Item(groupId = groupId, itemName = name, itemDescription = "", itemPrice = price))
+                        totalItems++
+                    }
+                }
+
+                Log.d(TAG, "Import complete — $totalItems items inserted")
                 withContext(Dispatchers.Main) {
                     progressBar.progress = 100
                     progressBar.visibility = View.GONE
-                    Toast.makeText(
-                        this@UploadActivity,
-                        "Uploaded ${menuItems.size} items!",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }*/
+                    uploadBtn.isEnabled = true
+                    Toast.makeText(this@UploadActivity, "Imported $totalItems items successfully!", Toast.LENGTH_LONG).show()
+                }
+
             } catch (e: Exception) {
+                Log.e(TAG, "Import failed: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this@UploadActivity, "Error: ${e.message}", Toast.LENGTH_LONG)
-                        .show()
+                    uploadBtn.isEnabled = true
+                    Toast.makeText(this@UploadActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
     }
-
-   /* private fun convertmenuItemtoItem(menuItems: List<MenuItem>): List<Item> {
-
-    }*/
-
-
 }

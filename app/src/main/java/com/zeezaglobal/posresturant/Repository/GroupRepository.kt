@@ -21,4 +21,14 @@ class GroupRepository(private val groupDao: GroupDao) {
     suspend fun deleteGroup(groupId: Int) = withContext(Dispatchers.IO) {
         groupDao.deleteGroup(groupId)
     }
+
+    // Delete all groups (cascades to items)
+    suspend fun deleteAll() = withContext(Dispatchers.IO) {
+        groupDao.deleteAllGroups()
+    }
+
+    // Insert group and return its generated ID
+    suspend fun insertAndGetId(group: Group): Long = withContext(Dispatchers.IO) {
+        groupDao.insertGroupAndGetId(group)
+    }
 }

@@ -19,23 +19,23 @@ class SaleSyncWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        val saleDao = POSApp.instance.database.saleDao()
-        // get API
-        val saleApi = RetrofitInstance.api
-        val unsyncedSales = saleDao.getUnsyncedSales()
-
-        unsyncedSales.forEach { sale ->
-            try {
-                val response = saleApi.createSale(saleMapper(sale)).execute()
-                if (response.isSuccessful) {
-                    saleDao.editSale(sale.copy(syncStatus = true))
-                } else {
-                    return Result.retry()
-                }
-            } catch (e: Exception) {
-                return Result.retry()
-            }
-        }
+        // OFFLINE MODE: sync disabled temporarily
+//        val saleDao = POSApp.instance.database.saleDao()
+//        val saleApi = RetrofitInstance.api
+//        val unsyncedSales = saleDao.getUnsyncedSales()
+//
+//        unsyncedSales.forEach { sale ->
+//            try {
+//                val response = saleApi.createSale(saleMapper(sale)).execute()
+//                if (response.isSuccessful) {
+//                    saleDao.editSale(sale.copy(syncStatus = true))
+//                } else {
+//                    return Result.retry()
+//                }
+//            } catch (e: Exception) {
+//                return Result.retry()
+//            }
+//        }
 
         return Result.success()
     }

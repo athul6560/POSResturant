@@ -13,6 +13,9 @@ interface GroupDao {
     @Insert
     suspend fun insertGroup(group: Group)
 
+    @Insert
+    suspend fun insertGroupAndGetId(group: Group): Long
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGroups(groups: List<Group>)
     @Query("SELECT * FROM group_table")
