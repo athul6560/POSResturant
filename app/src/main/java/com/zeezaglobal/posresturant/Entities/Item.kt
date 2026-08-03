@@ -19,5 +19,6 @@ data class Item(
     val groupId: Int, // Foreign key referencing Group
     val itemName: String, // Name of the item
     val itemDescription: String, // Description of the item
-    val itemPrice: Double // Price of the item
+    val itemPrice: Double, // Price of the item
+    val imagePath: String? = null // Absolute path to the item's photo on internal storage
 )

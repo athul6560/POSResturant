@@ -1,19 +1,17 @@
 package com.zeezaglobal.posresturant.ui.printModule
 
 import Receipt
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.pm.PackageManager
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Spinner
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,6 +31,7 @@ import com.zeezaglobal.posresturant.Printer.BTPrinterLogic
 import com.zeezaglobal.posresturant.R
 import com.zeezaglobal.posresturant.Repository.SaleRepository
 import com.zeezaglobal.posresturant.Utils.BillandTocken
+import com.zeezaglobal.posresturant.Utils.StorePreferenceManager
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -51,10 +50,13 @@ class CheckoutPageActivity : AppCompatActivity() {
     private lateinit var printBtn: Button
     private lateinit var customerEmail: EditText
     private lateinit var customerPhone: EditText
-    private lateinit var cartItemList: List<CartItem>  // You need to initialize this properly
+    private lateinit var cartItemList: List<CartItem>
     private var token: Int? = null
     private var billNo: Long? = null
-    lateinit var paymentMethodSpinner: Spinner
+    private lateinit var btnCash: LinearLayout
+    private lateinit var btnUpi: LinearLayout
+    private lateinit var btnCard: LinearLayout
+    private var selectedPaymentMethod: String = "Cash"
     private lateinit var saleRepository: SaleRepository
     private val taxRate = 0.0
     private lateinit var printerHelper: BTPrinterLogic
@@ -68,6 +70,16 @@ class CheckoutPageActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_checkout_page)
         supportActionBar?.hide()
+
+        // This app targets an SDK that enforces edge-to-edge rendering, so content draws
+        // behind the status/navigation bars unless we explicitly pad for them here.
+        val rootView = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         // Initialize your views
         saveCheck = findViewById(R.id.save_check)
         finishBtn = findViewById(R.id.finish_btn)
@@ -76,7 +88,6 @@ class CheckoutPageActivity : AppCompatActivity() {
         subtotalTextView = findViewById(R.id.textView8)
         taxTextView = findViewById(R.id.textView9)
         totalTextView = findViewById(R.id.textView10)
-        paymentMethodSpinner = findViewById(R.id.payment_method_spinner)
         tokenNumber = findViewById(R.id.tocken_number)
         billNumber = findViewById(R.id.textView23)
         dateAndTime = findViewById(R.id.textView24)
@@ -90,39 +101,22 @@ class CheckoutPageActivity : AppCompatActivity() {
 
         // Initialize SaleRepository
         saleRepository = SaleRepository((application as POSApp).database.saleDao())
-        printBtn.setEnabled(false);
-        tokenBtn.setEnabled(false);
-        // Assume cartItemList is populated with data from the cart
-        cartItemList = CartItemStore.cartItemList!! // Replace with actual cart item list source
+        printBtn.visibility = View.GONE
+        tokenBtn.visibility = View.GONE
 
-        // Set the payment method text
-        val paymentMethods = resources.getStringArray(R.array.payment_methods)
+        cartItemList = CartItemStore.cartItemList!!
 
-// Set up the spinner adapter
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        paymentMethodSpinner.adapter = adapter
+        // Set up payment buttons
+        btnCash = findViewById(R.id.btn_payment_cash)
+        btnUpi = findViewById(R.id.btn_payment_upi)
+        btnCard = findViewById(R.id.btn_payment_card)
 
-// Set the initial selection based on CartItemStore.paymentMethod
-        val initialPosition = paymentMethods.indexOf(CartItemStore.paymentMethod)
-        if (initialPosition != -1) {
-            paymentMethodSpinner.setSelection(initialPosition)
-        }
-        paymentMethodSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View,
-                position: Int,
-                id: Long
-            ) {
-                val selectedMethod = parent.getItemAtPosition(position).toString()
-                CartItemStore.paymentMethod=selectedMethod
-            }
+        selectedPaymentMethod = CartItemStore.paymentMethod ?: "Cash"
+        updatePaymentSelection(selectedPaymentMethod)
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
-                // Handle case when nothing is selected, if needed
-            }
-        }
+        btnCash.setOnClickListener { selectPayment("Cash") }
+        btnUpi.setOnClickListener { selectPayment("UPI") }
+        btnCard.setOnClickListener { selectPayment("Card") }
         // Calculate and display totals
         calculateTotals()
 
@@ -208,11 +202,11 @@ class CheckoutPageActivity : AppCompatActivity() {
 
             // Call addToSales only if values are valid
             addToSales(
-                billNumber = billNo ?: 0L, // Default to 0 if null
-                tokenNumber = token ?: 0,  // Default to 0 if null
+                billNumber = billNo ?: 0L,
+                tokenNumber = token ?: 0,
                 totalAmount = subtotal,
                 dateTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date()),
-                paymentMethod = CartItemStore.paymentMethod.toString(),
+                paymentMethod = selectedPaymentMethod,
                 customerName = customerName.text.toString(),
                 customerEmail = customerEmail.text.toString(),
                 customerPhone = customerPhone.text.toString()
@@ -222,6 +216,48 @@ class CheckoutPageActivity : AppCompatActivity() {
         if (cartItemList.isNotEmpty()) {
             val adapter = CartItemAdapter(cartItemList)
             recyclerView.adapter = adapter
+        }
+    }
+
+    private fun selectPayment(method: String) {
+        selectedPaymentMethod = method
+        CartItemStore.paymentMethod = method
+        updatePaymentSelection(method)
+    }
+
+    private fun updatePaymentSelection(method: String) {
+        setPaymentUnselected(btnCash)
+        setPaymentUnselected(btnUpi)
+        setPaymentUnselected(btnCard)
+        when (method) {
+            "Cash" -> setPaymentSelected(btnCash, ContextCompat.getColor(this, R.color.cashColor))
+            "UPI"  -> setPaymentSelected(btnUpi,  ContextCompat.getColor(this, R.color.upiColor))
+            "Card" -> setPaymentSelected(btnCard, ContextCompat.getColor(this, R.color.creditCardColor))
+        }
+    }
+
+    private fun setPaymentSelected(btn: LinearLayout, color: Int) {
+        val cornerPx = (20 * resources.displayMetrics.density)
+        val drawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = cornerPx
+            setColor(color)
+        }
+        btn.background = drawable
+        // Make all child TextViews white
+        for (i in 0 until btn.childCount) {
+            (btn.getChildAt(i) as? TextView)?.setTextColor(
+                ContextCompat.getColor(this, R.color.white)
+            )
+        }
+    }
+
+    private fun setPaymentUnselected(btn: LinearLayout) {
+        btn.setBackgroundResource(R.drawable.payment_btn_unselected)
+        // Restore text colors
+        val black = ContextCompat.getColor(this, R.color.black)
+        for (i in 0 until btn.childCount) {
+            (btn.getChildAt(i) as? TextView)?.setTextColor(black)
         }
     }
 
@@ -251,12 +287,18 @@ class CheckoutPageActivity : AppCompatActivity() {
             customerName = customerName,
             customerEmail = customerEmail,
             customerPhone = customerPhone,
-            status = 0
+            status = 0,
+            store = getstoreId()
         )
         SaleItem = saleItem
-        saleRepository.insertSale(saleItem)
-        printBtn.setEnabled(true);
-        tokenBtn.setEnabled(true);
+        saleRepository.insertSale(saleItem, this)
+        printBtn.visibility = View.VISIBLE
+        tokenBtn.visibility = View.VISIBLE
+    }
+
+    private fun getstoreId(): Int {
+        val storeId = StorePreferenceManager.getStoreId(this)
+       return storeId
     }
 
     private fun calculateTotals() {

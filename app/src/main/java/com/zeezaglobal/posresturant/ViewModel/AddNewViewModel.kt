@@ -1,7 +1,8 @@
 package com.zeezaglobal.posresturant.ViewModel
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,8 +11,10 @@ import com.zeezaglobal.posresturant.Entities.Group
 import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
-import dagger.hilt.android.internal.Contexts.getApplication
+import com.zeezaglobal.posresturant.Utils.ExcelParser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AddNewViewModel(
     private val groupRepository: GroupRepository,
@@ -53,8 +56,20 @@ class AddNewViewModel(
     }
 
     // Add an item to a group
-    fun addItemToGroup(groupId: Int, itemName: String, itemDescription: String, itemPrice: Double) {
-        val item = Item(groupId = groupId, itemName = itemName, itemDescription = itemDescription, itemPrice = itemPrice)
+    fun addItemToGroup(
+        groupId: Int,
+        itemName: String,
+        itemDescription: String,
+        itemPrice: Double,
+        imagePath: String? = null
+    ) {
+        val item = Item(
+            groupId = groupId,
+            itemName = itemName,
+            itemDescription = itemDescription,
+            itemPrice = itemPrice,
+            imagePath = imagePath
+        )
         viewModelScope.launch {
             itemRepository.insertItem(item)
             loadItems()
@@ -80,6 +95,40 @@ class AddNewViewModel(
     fun deleteItem(itemId: Int) {
         viewModelScope.launch {
             itemRepository.deleteItem(itemId)
+        }
+    }
+
+    // Import groups and items from an Excel file (.xlsx)
+    // Each non-empty size column value creates a separate item: "Item Name - Size"
+    fun importFromExcel(context: Context, uri: Uri, onComplete: (itemCount: Int) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val menuMap = ExcelParser.parse(context, uri)
+                if (menuMap.isEmpty()) throw Exception("No data found — check column headers (CATEGORY, ITEM NAME)")
+
+                // Clear existing data then re-insert
+                groupRepository.deleteAll()
+
+                var totalItems = 0
+                menuMap.forEach { (categoryName, itemList) ->
+                    val groupId = groupRepository.insertAndGetId(Group(groupName = categoryName)).toInt()
+                    itemList.forEach { (name, price) ->
+                        itemRepository.insertItem(
+                            Item(groupId = groupId, itemName = name, itemDescription = "", itemPrice = price)
+                        )
+                        totalItems++
+                    }
+                }
+
+                withContext(Dispatchers.Main) {
+                    loadGroups()
+                    loadItems()
+                    onComplete(totalItems)
+                }
+            } catch (e: Exception) {
+                Log.e("AddNewViewModel", "Excel import failed: ${e.message}", e)
+                withContext(Dispatchers.Main) { onComplete(-1) }
+            }
         }
     }
 }

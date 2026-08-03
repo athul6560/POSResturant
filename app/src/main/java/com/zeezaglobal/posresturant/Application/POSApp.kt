@@ -1,6 +1,7 @@
 package com.zeezaglobal.posresturant.Application
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -17,15 +18,21 @@ class POSApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        instance = this
         database = Room.databaseBuilder(
             applicationContext,
             POSDatabase::class.java,
             "my-database"
         )
+            .addMigrations(POSDatabase.MIGRATION_1_2)
             .addCallback(DatabaseCallback())
             .build()
     }
-
+    companion object {
+        lateinit var instance: POSApp
+            private set
+    }
     private inner class DatabaseCallback : RoomDatabase.Callback() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)

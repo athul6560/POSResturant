@@ -2,6 +2,7 @@ package com.zeezaglobal.posresturant.Dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.zeezaglobal.posresturant.Entities.Item
@@ -14,7 +15,10 @@ interface ItemDao {
 
     @Query("SELECT * FROM item_table WHERE groupId = :groupId")
     suspend fun getItemsByGroup(groupId: Int): List<Item>
-
+    @Query("DELETE FROM item_table")
+    suspend fun deleteAllItems()
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertItems(items: List<Item>)
     @Query("DELETE FROM item_table WHERE itemId = :itemId")
     suspend fun deleteItem(itemId: Int)
 

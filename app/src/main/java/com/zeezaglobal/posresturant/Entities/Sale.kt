@@ -15,6 +15,7 @@ data class Sale(
     val billNumber: Long,
     val tokenNumber: Int,
     var status: Int,
+    var store: Int,
     val totalAmount: Double,
     val dateTime: String,
     val paymentMethod: String,
@@ -24,6 +25,8 @@ data class Sale(
     // Optional fields for customer information
     var customerName: String? = null,
     val customerEmail: String? = null,
-    val customerPhone: String? = null
+    val customerPhone: String? = null,
+
+    var syncStatus: Boolean = false
 
 )
