@@ -89,8 +89,8 @@ class CheckoutPageActivity : AppCompatActivity() {
 
         // Initialize SaleRepository
         saleRepository = SaleRepository((application as POSApp).database.saleDao())
-        printBtn.isEnabled = false
-        tokenBtn.isEnabled = false
+        printBtn.visibility = View.GONE
+        tokenBtn.visibility = View.GONE
 
         cartItemList = CartItemStore.cartItemList!!
 
@@ -225,7 +225,7 @@ class CheckoutPageActivity : AppCompatActivity() {
     }
 
     private fun setPaymentSelected(btn: LinearLayout, color: Int) {
-        val cornerPx = (14 * resources.displayMetrics.density)
+        val cornerPx = (20 * resources.displayMetrics.density)
         val drawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = cornerPx
@@ -280,8 +280,8 @@ class CheckoutPageActivity : AppCompatActivity() {
         )
         SaleItem = saleItem
         saleRepository.insertSale(saleItem, this)
-        printBtn.setEnabled(true);
-        tokenBtn.setEnabled(true);
+        printBtn.visibility = View.VISIBLE
+        tokenBtn.visibility = View.VISIBLE
     }
 
     private fun getstoreId(): Int {

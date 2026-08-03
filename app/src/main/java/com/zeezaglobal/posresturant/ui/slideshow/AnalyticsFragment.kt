@@ -107,6 +107,7 @@ class AnalyticsFragment : Fragment(), SalesAdapter.OnPrintClickListener,
         salesView = root.findViewById(R.id.salesProgressView)
         val recyclerView: RecyclerView = root.findViewById(R.id.salesRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.isNestedScrollingEnabled = false
 
 
         val adapter = SalesAdapter(emptyList(), this, this)

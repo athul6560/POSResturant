@@ -108,6 +108,9 @@ dependencies {
 
     implementation("com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0")
 
+    // Item photo picking/cropping + loading
+    implementation("com.vanniktech:android-image-cropper:4.6.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")

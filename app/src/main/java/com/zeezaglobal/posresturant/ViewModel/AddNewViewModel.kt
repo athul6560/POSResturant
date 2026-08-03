@@ -56,8 +56,20 @@ class AddNewViewModel(
     }
 
     // Add an item to a group
-    fun addItemToGroup(groupId: Int, itemName: String, itemDescription: String, itemPrice: Double) {
-        val item = Item(groupId = groupId, itemName = itemName, itemDescription = itemDescription, itemPrice = itemPrice)
+    fun addItemToGroup(
+        groupId: Int,
+        itemName: String,
+        itemDescription: String,
+        itemPrice: Double,
+        imagePath: String? = null
+    ) {
+        val item = Item(
+            groupId = groupId,
+            itemName = itemName,
+            itemDescription = itemDescription,
+            itemPrice = itemPrice,
+            imagePath = imagePath
+        )
         viewModelScope.launch {
             itemRepository.insertItem(item)
             loadItems()

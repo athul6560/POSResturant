@@ -25,6 +25,7 @@ class POSApp : Application() {
             POSDatabase::class.java,
             "my-database"
         )
+            .addMigrations(POSDatabase.MIGRATION_1_2)
             .addCallback(DatabaseCallback())
             .build()
     }

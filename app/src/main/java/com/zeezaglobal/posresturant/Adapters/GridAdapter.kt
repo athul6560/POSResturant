@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.R
 
@@ -35,6 +36,13 @@ class GridAdapter(
         holder.textViewItemName.text = capitalizedItemName
         holder.textViewItemDescription.text = capitalizedItemDescription
         holder.textViewItemPrice.text = String.format("₹%.2f", item.itemPrice)
+
+        Glide.with(holder.itemView.context)
+            .load(item.imagePath)
+            .placeholder(R.drawable.ic_menu_camera)
+            .error(R.drawable.ic_menu_camera)
+            .centerCrop()
+            .into(holder.imageViewItem)
 
         // Set click listener
         holder.itemView.setOnClickListener {
@@ -80,5 +88,6 @@ class GridAdapter(
         val textViewItemName: TextView = itemView.findViewById(R.id.textViewItemName)
         val textViewItemDescription: TextView = itemView.findViewById(R.id.textViewItemDescription)
         val textViewItemPrice: TextView = itemView.findViewById(R.id.textViewItemPrice)
+        val imageViewItem: ImageView = itemView.findViewById(R.id.imageViewItem)
     }
 }

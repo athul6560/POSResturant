@@ -4,10 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="@drawable/rounded_background_white"
     android:layout_margin="8dp"
-android:padding="16dp">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/item_name_text_view"
@@ -17,6 +16,7 @@ android:padding="16dp">
         android:textColor="@color/black"
         android:textSize="18sp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/editButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,8 +24,11 @@ android:padding="16dp">
         android:id="@+id/item_description_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="desc"
+        android:textColor="@color/dark_grey"
         android:textSize="14sp"
+        app:layout_constraintEnd_toStartOf="@+id/editButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/item_name_text_view" />
 
@@ -33,10 +36,12 @@ android:padding="16dp">
         android:id="@+id/item_price_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:fontFamily="@font/roboto_bold"
         android:text="20"
         android:textColor="@android:color/holo_green_dark"
         android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@+id/editButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/item_description_text_view" />
 

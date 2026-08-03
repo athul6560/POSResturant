@@ -19,12 +19,14 @@ import android.widget.EditText
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.zeezaglobal.posresturant.Adapters.CartAdapter
 import com.zeezaglobal.posresturant.Adapters.GridAdapter
 
@@ -141,7 +143,9 @@ class HomeFragment : Fragment() {
             // sharedPreferencesHelper.saveCartItemToSharedPreferences(selectedItem)
             //   loadCartFromSharedPreferences()
         }
-        itemRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2) // 2 columns
+        val screenWidthDp = resources.configuration.screenWidthDp
+        val spanCount = (screenWidthDp / 190).coerceAtLeast(2)
+        itemRecyclerView.layoutManager = GridLayoutManager(requireContext(), spanCount)
         itemRecyclerView.adapter = adapter
 
         addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
@@ -175,6 +179,21 @@ class HomeFragment : Fragment() {
         // Set onClickListener for clear cart button
         clearCart.setOnClickListener {
             clearCartFn()
+        }
+
+        // On phones the cart panel is a bottom sheet that slides up; on tablets it's a
+        // fixed side panel with no CoordinatorLayout behavior attached.
+        val cartLayoutParams = binding.rightLayout.layoutParams
+        if (cartLayoutParams is CoordinatorLayout.LayoutParams) {
+            val cartSheetBehavior = BottomSheetBehavior.from(binding.rightLayout)
+            cartSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            binding.cartSummaryHeader?.setOnClickListener {
+                cartSheetBehavior.state = if (cartSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+                    BottomSheetBehavior.STATE_COLLAPSED
+                } else {
+                    BottomSheetBehavior.STATE_EXPANDED
+                }
+            }
         }
 
         return root

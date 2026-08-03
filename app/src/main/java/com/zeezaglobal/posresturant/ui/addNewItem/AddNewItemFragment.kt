@@ -2,7 +2,6 @@ package com.zeezaglobal.posresturant.ui.addNewItem
 
 import android.R
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -11,10 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -22,28 +17,37 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import com.zeezaglobal.posresturant.Adapters.ItemAdapter
 import com.zeezaglobal.posresturant.Adapters.ItemEditListener
 import com.zeezaglobal.posresturant.Application.POSApp
+import com.zeezaglobal.posresturant.Entities.Group
 import com.zeezaglobal.posresturant.Entities.Item
 import com.zeezaglobal.posresturant.Repository.GroupRepository
 import com.zeezaglobal.posresturant.Repository.ItemRepository
 import com.zeezaglobal.posresturant.ViewModel.AddNewViewModel
 import com.zeezaglobal.posresturant.ViewmodelFactory.POSViewModelFactory
+import com.zeezaglobal.posresturant.databinding.BottomSheetAddItemBinding
 import com.zeezaglobal.posresturant.databinding.FragmentAddNewBinding
 import com.zeezaglobal.posresturant.ui.EditMenu.EditMenuActivity
+import java.io.File
+import java.util.UUID
 
 
-class AddNewItemFragment : Fragment() , ItemEditListener {
+class AddNewItemFragment : Fragment(), ItemEditListener {
 
     private var _binding: FragmentAddNewBinding? = null
     private lateinit var addNewViewModel: AddNewViewModel
     private val binding get() = _binding!!
-    private lateinit var itemNameEditText: EditText
-    private lateinit var itemDescriptionEditText: EditText
-    private lateinit var itemPriceEditText: EditText
+    private var sheetBinding: BottomSheetAddItemBinding? = null
     private var selectedGroupId: Int? = null
+    private var latestGroups: List<Group> = emptyList()
+    private var pendingImagePath: String? = null
     private lateinit var itemRecyclerView: RecyclerView
     private lateinit var itemAdapter: ItemAdapter
 
@@ -56,6 +60,21 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
         }
     }
 
+    private val cropImageLauncher = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            val croppedUri = result.uriContent ?: return@registerForActivityResult
+            val savedPath = saveImageToInternalStorage(croppedUri)
+            if (savedPath != null) {
+                pendingImagePath = savedPath
+                showItemPhotoPreview(savedPath)
+            } else {
+                Toast.makeText(requireContext(), "Failed to save photo", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), "Failed to crop photo", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,57 +84,85 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
         val groupRepository = GroupRepository((application).database.groupDao())
         val itemRepository = ItemRepository((application).database.itemDao())
 
-        val posViewModelFactory = POSViewModelFactory(groupRepository,itemRepository)
+        val posViewModelFactory = POSViewModelFactory(groupRepository, itemRepository)
         addNewViewModel = ViewModelProvider(this, posViewModelFactory).get(
             AddNewViewModel::class.java
         )
         _binding = FragmentAddNewBinding.inflate(inflater, container, false)
-        // Initialize EditTexts
-        itemNameEditText = binding.itemName
-        itemDescriptionEditText = binding.itemDescription
-        itemPriceEditText = binding.itemPrice
-        itemRecyclerView = binding.itemRecyclerView // Initialize the RecyclerView
 
-        // Set up RecyclerView
+        itemRecyclerView = binding.itemRecyclerView
         itemRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        itemAdapter = ItemAdapter(emptyList(),this)
+        itemAdapter = ItemAdapter(emptyList(), this)
         itemRecyclerView.adapter = itemAdapter
 
-        // Set up the ImageButton click listener
-        val imageButton: ImageButton = binding.imageButton
-        imageButton.setOnClickListener {
-            showCategoryPopup()
-        }
-
-
-        val root: View = binding.root
-        val categorySpinner: Spinner = binding.categorySpinner
-        // Observe groups from the ViewModel
         addNewViewModel.groups.observe(viewLifecycleOwner, Observer { groupList ->
-            val groupNames = groupList.map { it.groupName } // Assuming Group has a property named groupName
-            val adapter = ArrayAdapter(requireContext(), R.layout.simple_spinner_item, groupNames)
-            adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item)
-            categorySpinner.adapter = adapter
+            latestGroups = groupList
+            refreshCategorySpinner()
         })
         addNewViewModel.items.observe(viewLifecycleOwner, Observer { itemList ->
-           itemAdapter.updateItems(itemList)
+            itemAdapter.updateItems(itemList)
+            binding.emptyStateText.visibility = if (itemList.isEmpty()) View.VISIBLE else View.GONE
         })
 
-        // Spinner item selection listener
-        categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                selectedGroupId = position+1
-                val selectedGroup = categorySpinner.selectedItem as String
+        binding.fabAddItem.setOnClickListener {
+            showAddItemBottomSheet()
+        }
 
+        return binding.root
+    }
+
+    private fun refreshCategorySpinner() {
+        val sb = sheetBinding ?: return
+        val groupNames = latestGroups.map { it.groupName }
+        val adapter = ArrayAdapter(requireContext(), R.layout.simple_spinner_item, groupNames)
+        adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item)
+        sb.categorySpinner.adapter = adapter
+        selectedGroupId = latestGroups.firstOrNull()?.groupId
+    }
+
+    private fun showAddItemBottomSheet() {
+        val dialog = BottomSheetDialog(requireContext())
+        val sb = BottomSheetAddItemBinding.inflate(LayoutInflater.from(requireContext()))
+        sheetBinding = sb
+        dialog.setContentView(sb.root)
+        dialog.setOnDismissListener { sheetBinding = null }
+
+        pendingImagePath = null
+        sb.itemPhotoContainer.setOnClickListener {
+            cropImageLauncher.launch(
+                CropImageContractOptions(
+                    uri = null,
+                    cropImageOptions = CropImageOptions(
+                        imageSourceIncludeCamera = true,
+                        imageSourceIncludeGallery = true,
+                        fixAspectRatio = true,
+                        aspectRatioX = 1,
+                        aspectRatioY = 1
+                    )
+                )
+            )
+        }
+
+        refreshCategorySpinner()
+        sb.categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                selectedGroupId = latestGroups.getOrNull(position)?.groupId
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
-                // Handle no selection if needed
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        sb.addCategoryButton.setOnClickListener {
+            val categoryName = sb.categoryEditText.text.toString()
+            if (categoryName.isNotEmpty()) {
+                addNewViewModel.addGroup(categoryName)
+                sb.categoryEditText.text.clear()
+            } else {
+                Toast.makeText(requireContext(), "Please enter a category name", Toast.LENGTH_SHORT).show()
             }
         }
-        // Upload Menu button
-        val uploadMenuButton: Button = binding.uploadMenuButton
-        uploadMenuButton.setOnClickListener {
+
+        sb.uploadMenuButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -123,82 +170,58 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
             excelPickerLauncher.launch(Intent.createChooser(intent, "Select Excel Menu File"))
         }
 
-        // Initialize submit button
-        val submitButton: Button = binding.button
-        submitButton.setOnClickListener {
-            // Collect the data from EditTexts
-            val itemName = itemNameEditText.text.toString()
-            val itemDescription = itemDescriptionEditText.text.toString()
-            val itemPriceText = itemPriceEditText.text.toString()
+        sb.button.setOnClickListener {
+            val itemName = sb.itemName.text.toString()
+            val itemDescription = sb.itemDescription.text.toString()
+            val itemPriceText = sb.itemPrice.text.toString()
 
-            // Validate inputs
             if (itemName.isBlank() || itemDescription.isBlank() || itemPriceText.isBlank() || selectedGroupId == null) {
                 Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Parse the price to Double
             val itemPrice = itemPriceText.toDoubleOrNull()
             if (itemPrice == null) {
                 Toast.makeText(requireContext(), "Invalid price format", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Add the item to the group
-            addNewViewModel.addItemToGroup(selectedGroupId!!, itemName, itemDescription, itemPrice)
-
-            // Show a success message
-           // Toast.makeText(requireContext(), "Item '$itemName' added successfully", Toast.LENGTH_SHORT).show()
-
-            // Clear the EditTexts after submission
-            itemNameEditText.text.clear()
-            itemDescriptionEditText.text.clear()
-            itemPriceEditText.text.clear()
+            addNewViewModel.addItemToGroup(selectedGroupId!!, itemName, itemDescription, itemPrice, pendingImagePath)
+            Toast.makeText(requireContext(), "Item '$itemName' added successfully", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
 
-        return root
+        dialog.show()
     }
 
-    private fun showCategoryPopup() {
-        // Inflate the custom layout for the popup
-        val inflater = LayoutInflater.from(requireContext())
-        val popupView = inflater.inflate(com.zeezaglobal.posresturant.R.layout.dialog_add_category, null)
+    private fun showItemPhotoPreview(path: String) {
+        val sb = sheetBinding ?: return
+        sb.itemPhotoPlaceholder.visibility = View.GONE
+        sb.itemPhotoPreview.visibility = View.VISIBLE
+        Glide.with(this).load(File(path)).into(sb.itemPhotoPreview)
+    }
 
-        // Create the AlertDialog
-        val alertDialog = AlertDialog.Builder(requireContext())
-            .setView(popupView)
-            .setCancelable(true)
-            .create()
-
-        // Set up the EditText and Button in the popup
-        val categoryEditText: EditText = popupView.findViewById(com.zeezaglobal.posresturant.R.id.categoryEditText)
-        val addCategoryButton: Button = popupView.findViewById(com.zeezaglobal.posresturant.R.id.addCategoryButton)
-
-        // Handle the button click to insert the category
-        addCategoryButton.setOnClickListener {
-            val categoryName = categoryEditText.text.toString()
-
-            if (categoryName.isNotEmpty()) {
-                // Insert the category (you can call a ViewModel method to insert it into the database)
-                addNewViewModel.addGroup(categoryName)
-                alertDialog.dismiss()
-            } else {
-                Toast.makeText(requireContext(), "Please enter a category name", Toast.LENGTH_SHORT).show()
+    private fun saveImageToInternalStorage(uri: Uri): String? {
+        return try {
+            val imagesDir = File(requireContext().filesDir, "item_images").apply { mkdirs() }
+            val destFile = File(imagesDir, "${UUID.randomUUID()}.jpg")
+            requireContext().contentResolver.openInputStream(uri)?.use { input ->
+                destFile.outputStream().use { output -> input.copyTo(output) }
             }
+            destFile.absolutePath
+        } catch (e: Exception) {
+            null
         }
-
-        // Show the dialog
-        alertDialog.show()
-
     }
 
     private fun handleExcelUpload(uri: Uri) {
-        val uploadBtn = binding.uploadMenuButton
+        val uploadBtn = sheetBinding?.uploadMenuButton ?: return
         uploadBtn.isEnabled = false
         uploadBtn.text = "Importing..."
         addNewViewModel.importFromExcel(requireContext(), uri) { itemCount ->
-            uploadBtn.isEnabled = true
-            uploadBtn.text = "Upload Menu"
+            val btn = sheetBinding?.uploadMenuButton
+            btn?.isEnabled = true
+            btn?.text = "Or Upload Menu from Excel"
             if (itemCount >= 0) {
                 Toast.makeText(requireContext(), "Imported $itemCount items successfully!", Toast.LENGTH_LONG).show()
             } else {
@@ -209,6 +232,7 @@ class AddNewItemFragment : Fragment() , ItemEditListener {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        sheetBinding = null
         _binding = null
     }
 

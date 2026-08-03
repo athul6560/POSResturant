@@ -1,221 +1,219 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="3dp"
-    app:cardBackgroundColor="#FFFFFF">
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/outline_variant"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="@color/surface_container">
 
     <!--
-        Root: horizontal LinearLayout with weight-based columns.
-        - Token badge : fixed 72dp
-        - Info column : weight=1  (fills everything in between — never clips)
-        - Amount+btns : wrap_content (sized by its own content)
-        No ConstraintLayout competing for space.
+        Root: vertical LinearLayout with two rows so nothing depends on
+        wrap_content siblings competing for the same horizontal space.
+        - Row 1 : token badge (fixed) + info column (weight=1, shrinks/ellipsizes) + amount (fixed)
+        - Row 2 : action buttons, each weight=1 — always exactly fits the card width
     -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="14dp">
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <!-- ── 1. Token badge ──────────────────────────────────────── -->
         <LinearLayout
-            android:id="@+id/token_badge"
-            android:layout_width="68dp"
-            android:layout_height="68dp"
-            android:background="@drawable/token_badge_bg"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TOKEN"
-                android:textColor="#DDFFFFFF"
-                android:textSize="8sp"
-                android:letterSpacing="0.08"
-                android:fontFamily="@font/roboto" />
-
-            <TextView
-                android:id="@+id/tokenNumber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="42"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:fontFamily="@font/roboto_bold" />
-        </LinearLayout>
-
-        <!-- ── 2. Info column (weight=1, never clips) ──────────────── -->
-        <LinearLayout
-            android:id="@+id/info_column"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="18dp"
-            android:layout_marginEnd="18dp"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <!-- Bill # + chips row -->
+            <!-- ── 1. Token badge ──────────────────────────────────────── -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:id="@+id/token_badge"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/token_badge_bg"
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/billNumber"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:text="#12345"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
+                    android:text="TOKEN"
+                    android:textColor="#DDFFFFFF"
+                    android:textSize="8sp"
+                    android:letterSpacing="0.08"
+                    android:fontFamily="@font/roboto" />
+
+                <TextView
+                    android:id="@+id/tokenNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="42"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
                     android:fontFamily="@font/roboto_bold" />
-
-                <TextView
-                    android:id="@+id/paymentChip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/chip_rounded"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:paddingTop="3dp"
-                    android:paddingBottom="3dp"
-                    android:text="Cash"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:fontFamily="@font/roboto_medium" />
-
-                <TextView
-                    android:id="@+id/cancelledBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/chip_cancelled_bg"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:paddingTop="3dp"
-                    android:paddingBottom="3dp"
-                    android:text="CANCELLED"
-                    android:textColor="#FFFFFF"
-                    android:textSize="10sp"
-                    android:fontFamily="@font/roboto_bold"
-                    android:visibility="gone" />
             </LinearLayout>
 
-            <!-- Customer name + phone -->
-            <TextView
-                android:id="@+id/saleId"
-                android:layout_width="match_parent"
+            <!-- ── 2. Info column (weight=1, shrinks and ellipsizes first) ── -->
+            <LinearLayout
+                android:id="@+id/info_column"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="John Doe · 9876543210"
-                android:textColor="#444444"
-                android:textSize="14sp"
-                android:fontFamily="@font/roboto_medium" />
+                android:layout_weight="1"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical">
 
-            <!-- Date / time -->
-            <TextView
-                android:id="@+id/dateTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="Nov 26, 2024 · 2:30 PM"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:fontFamily="@font/roboto" />
-        </LinearLayout>
+                <!-- Bill # + chips row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-        <!-- ── 3. Amount + action buttons (wrap_content) ───────────── -->
-        <LinearLayout
-            android:id="@+id/right_column"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="end|center_vertical"
-            android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/billNumber"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:text="#12345"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/roboto_bold" />
 
-            <!-- Amount -->
+                    <TextView
+                        android:id="@+id/paymentChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/chip_rounded"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:text="Cash"
+                        android:textColor="#FFFFFF"
+                        android:textSize="11sp"
+                        android:fontFamily="@font/roboto_medium" />
+
+                    <TextView
+                        android:id="@+id/cancelledBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/chip_cancelled_bg"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:text="CANCELLED"
+                        android:textColor="#FFFFFF"
+                        android:textSize="9sp"
+                        android:fontFamily="@font/roboto_bold"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Customer name + phone -->
+                <TextView
+                    android:id="@+id/saleId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="John Doe · 9876543210"
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/roboto_medium" />
+
+                <!-- Date / time -->
+                <TextView
+                    android:id="@+id/dateTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="Nov 26, 2024 · 2:30 PM"
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/roboto" />
+            </LinearLayout>
+
+            <!-- ── 3. Amount (fixed, always short) ─────────────────────── -->
             <TextView
                 android:id="@+id/totalAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
                 android:text="₹450"
                 android:textColor="@color/purple_500"
-                android:textSize="26sp"
+                android:textSize="22sp"
                 android:fontFamily="@font/roboto_bold" />
 
-            <!-- Buttons — plain Button with custom drawable avoids Material min-width -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+        </LinearLayout>
 
-                <Button
-                    android:id="@+id/whatsapp_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/action_btn_bg"
-                    android:backgroundTint="#25D366"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:text="WA"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:fontFamily="@font/roboto_bold" />
+        <!-- ── Action buttons — full row, equal weight, never overflows ── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/print_btn_sales"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/action_btn_bg"
-                    android:backgroundTint="#78909C"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:text="Print"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:fontFamily="@font/roboto_medium" />
+            <Button
+                android:id="@+id/whatsapp_btn"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/action_btn_bg"
+                android:backgroundTint="#25D366"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="WA"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/roboto_bold" />
 
-                <Button
-                    android:id="@+id/cancel_btn_sales"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:background="@drawable/action_btn_bg"
-                    android:backgroundTint="#EF5350"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:text="Cancel"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:fontFamily="@font/roboto_medium" />
-            </LinearLayout>
+            <Button
+                android:id="@+id/print_btn_sales"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/action_btn_bg"
+                android:backgroundTint="#78909C"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="Print"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/roboto_medium" />
+
+            <Button
+                android:id="@+id/cancel_btn_sales"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:background="@drawable/action_btn_bg"
+                android:backgroundTint="#EF5350"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="Cancel"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="@font/roboto_medium" />
         </LinearLayout>
 
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
