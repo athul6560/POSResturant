@@ -1,8 +1,10 @@
 package com.zeezaglobal.posresturant.ui.addNewItem
 
+import android.Manifest
 import android.R
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +14,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -57,6 +60,19 @@ class AddNewItemFragment : Fragment(), ItemEditListener {
         if (result.resultCode == Activity.RESULT_OK) {
             val uri: Uri = result.data?.data ?: return@registerForActivityResult
             handleExcelUpload(uri)
+        }
+    }
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        launchCropper(includeCamera = granted)
+        if (!granted) {
+            Toast.makeText(
+                requireContext(),
+                "Camera permission denied — you can still pick a photo from gallery",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -129,18 +145,16 @@ class AddNewItemFragment : Fragment(), ItemEditListener {
 
         pendingImagePath = null
         sb.itemPhotoContainer.setOnClickListener {
-            cropImageLauncher.launch(
-                CropImageContractOptions(
-                    uri = null,
-                    cropImageOptions = CropImageOptions(
-                        imageSourceIncludeCamera = true,
-                        imageSourceIncludeGallery = true,
-                        fixAspectRatio = true,
-                        aspectRatioX = 1,
-                        aspectRatioY = 1
-                    )
-                )
-            )
+            val cameraGranted = ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (cameraGranted) {
+                launchCropper(includeCamera = true)
+            } else {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
         }
 
         refreshCategorySpinner()
@@ -192,6 +206,21 @@ class AddNewItemFragment : Fragment(), ItemEditListener {
         }
 
         dialog.show()
+    }
+
+    private fun launchCropper(includeCamera: Boolean) {
+        cropImageLauncher.launch(
+            CropImageContractOptions(
+                uri = null,
+                cropImageOptions = CropImageOptions(
+                    imageSourceIncludeCamera = includeCamera,
+                    imageSourceIncludeGallery = true,
+                    fixAspectRatio = true,
+                    aspectRatioX = 1,
+                    aspectRatioY = 1
+                )
+            )
+        )
     }
 
     private fun showItemPhotoPreview(path: String) {

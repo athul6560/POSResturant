@@ -37,12 +37,16 @@ class GridAdapter(
         holder.textViewItemDescription.text = capitalizedItemDescription
         holder.textViewItemPrice.text = String.format("₹%.2f", item.itemPrice)
 
-        Glide.with(holder.itemView.context)
-            .load(item.imagePath)
-            .placeholder(R.drawable.ic_menu_camera)
-            .error(R.drawable.ic_menu_camera)
-            .centerCrop()
-            .into(holder.imageViewItem)
+        if (item.imagePath.isNullOrBlank()) {
+            holder.imageViewItem.setImageDrawable(null)
+            holder.imageViewNoPhoto.visibility = View.VISIBLE
+        } else {
+            holder.imageViewNoPhoto.visibility = View.GONE
+            Glide.with(holder.itemView.context)
+                .load(item.imagePath)
+                .centerCrop()
+                .into(holder.imageViewItem)
+        }
 
         // Set click listener
         holder.itemView.setOnClickListener {
@@ -89,5 +93,6 @@ class GridAdapter(
         val textViewItemDescription: TextView = itemView.findViewById(R.id.textViewItemDescription)
         val textViewItemPrice: TextView = itemView.findViewById(R.id.textViewItemPrice)
         val imageViewItem: ImageView = itemView.findViewById(R.id.imageViewItem)
+        val imageViewNoPhoto: ImageView = itemView.findViewById(R.id.imageViewNoPhoto)
     }
 }

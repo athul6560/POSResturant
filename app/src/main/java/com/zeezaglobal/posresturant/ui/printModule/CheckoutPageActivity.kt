@@ -15,6 +15,8 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.zeezaglobal.posresturant.Adapters.CartItemAdapter
@@ -68,6 +70,16 @@ class CheckoutPageActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_checkout_page)
         supportActionBar?.hide()
+
+        // This app targets an SDK that enforces edge-to-edge rendering, so content draws
+        // behind the status/navigation bars unless we explicitly pad for them here.
+        val rootView = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         // Initialize your views
         saveCheck = findViewById(R.id.save_check)
         finishBtn = findViewById(R.id.finish_btn)

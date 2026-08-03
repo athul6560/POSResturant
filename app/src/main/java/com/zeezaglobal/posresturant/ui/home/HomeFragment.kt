@@ -20,6 +20,8 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -179,6 +181,15 @@ class HomeFragment : Fragment() {
         // Set onClickListener for clear cart button
         clearCart.setOnClickListener {
             clearCartFn()
+        }
+
+        // This app targets an SDK that enforces edge-to-edge rendering, so the checkout
+        // button at the bottom of the cart panel would otherwise sit under the gesture
+        // navigation bar — pad for it explicitly.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.rightLayout) { view, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBars.bottom)
+            insets
         }
 
         // On phones the cart panel is a bottom sheet that slides up; on tablets it's a
